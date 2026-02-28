@@ -25,6 +25,7 @@ interface RowData {
   category: BudgetCategory;
   isSummary?: boolean;
   isRemaining?: boolean;
+  isReadOnly?: boolean;
   values: Record<MonthBE, number>;
   original?: BudgetItem;
 }
@@ -42,6 +43,7 @@ export function BudgetTable({ items, loading, onEdit, onDelete, onCellChange }: 
         id: item.id,
         name: item.name,
         category: cat,
+        isReadOnly: item.id.startsWith('installment-'),
         values: item.monthlyValues,
         original: item,
       });
@@ -110,6 +112,9 @@ export function BudgetTable({ items, loading, onEdit, onDelete, onCellChange }: 
         if (record.isRemaining) {
           return <strong style={{ color: val >= 0 ? '#10b981' : '#ef4444' }}>{formatNumber(val)}</strong>;
         }
+        if (record.isReadOnly) {
+          return <span style={{ color: '#999' }}>{formatNumber(val)}</span>;
+        }
         return (
           <InputNumber
             size="small"
@@ -128,7 +133,7 @@ export function BudgetTable({ items, loading, onEdit, onDelete, onCellChange }: 
       width: 80,
       fixed: 'right' as const,
       render: (_: unknown, record: RowData) => {
-        if (record.isSummary || record.isRemaining) return null;
+        if (record.isSummary || record.isRemaining || record.isReadOnly) return null;
         return (
           <div className="flex gap-1">
             <Button size="small" icon={<EditOutlined />} onClick={() => onEdit(record.original!)} />

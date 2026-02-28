@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Typography, Button, Select, message } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useBudget } from '@/hooks/useBudget';
@@ -7,8 +7,7 @@ import { BudgetTable } from '@/components/budget/BudgetTable';
 import { BudgetItemForm, type BudgetFormResult } from '@/components/budget/BudgetItemForm';
 import { BudgetChart } from '@/components/budget/BudgetChart';
 import type { BudgetItem } from '@/types';
-import { MONTHS_BE } from '@/types';
-import { budgetService } from '@/services/budgetService';
+import { installmentsToBudgetItems } from '@/utils/installmentBudget';
 
 const CURRENT_YEAR_BE = new Date().getFullYear() + 543;
 const YEAR_OPTIONS = Array.from({ length: 7 }, (_, i) => {
@@ -17,10 +16,14 @@ const YEAR_OPTIONS = Array.from({ length: 7 }, (_, i) => {
 });
 
 export function BudgetPage() {
-  const { items, loading, year, setYear, create, update, updateMonthlyValue, remove, refresh } = useBudget();
+  const { items, loading, year, setYear, create, update, updateMonthlyValue, remove } = useBudget();
   const { plans } = useInstallments();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<BudgetItem | undefined>();
+
+  const installmentItems = useMemo(() => installmentsToBudgetItems(plans, year), [plans, year]);
+
+  const allItems = useMemo(() => [...items, ...installmentItems], [items, installmentItems]);
 
   const handleEdit = (item: BudgetItem) => {
     setEditing(item);
@@ -33,34 +36,10 @@ export function BudgetPage() {
   };
 
   const handleSubmit = async (result: BudgetFormResult) => {
-    const { values, selectedPlan, yearlyValues } = result;
-
+    const { values } = result;
     if (editing) {
       await update(editing.id, values);
       message.success('แก้ไขสำเร็จ');
-    } else if (selectedPlan && yearlyValues) {
-      // สร้าง budget item ครั้งเดียว แล้วเพิ่ม monthlyValues ปีอื่นลง item เดียวกัน
-      const years = Object.keys(yearlyValues).map(Number).sort();
-      const firstYear = years[0];
-
-      const created = await budgetService.create(
-        { name: values.name, category: values.category, monthlyValues: yearlyValues[firstYear] },
-        firstYear,
-      );
-
-      // เพิ่ม monthlyValues ปีที่เหลือลง item เดียวกัน
-      for (let i = 1; i < years.length; i++) {
-        const yr = years[i];
-        const monthValues = yearlyValues[yr];
-        for (const m of MONTHS_BE) {
-          if (monthValues[m] > 0) {
-            await budgetService.updateMonthlyValue(created.id, m, monthValues[m], yr);
-          }
-        }
-      }
-
-      await refresh();
-      message.success(`เพิ่มรายการสำเร็จ (${years.length} ปี)`);
     } else {
       await create(values);
       message.success('เพิ่มรายการสำเร็จ');
@@ -85,14 +64,13 @@ export function BudgetPage() {
           เพิ่มรายการ
         </Button>
       </div>
-      <BudgetTable items={items} loading={loading} onEdit={handleEdit} onDelete={handleDelete} onCellChange={updateMonthlyValue} />
-      <BudgetChart items={items} loading={loading} />
+      <BudgetTable items={allItems} loading={loading} onEdit={handleEdit} onDelete={handleDelete} onCellChange={updateMonthlyValue} />
+      <BudgetChart items={allItems} loading={loading} />
       <BudgetItemForm
         open={formOpen}
         onCancel={() => { setFormOpen(false); setEditing(undefined); }}
         onSubmit={handleSubmit}
         initialValues={editing}
-        installmentPlans={plans}
       />
     </div>
   );

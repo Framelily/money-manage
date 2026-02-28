@@ -1,6 +1,6 @@
 import type { ID, Baht } from './common';
 
-export type CardProvider = 'KTC' | 'UOB' | 'SHOPEE';
+export type CardProvider = string;
 
 export interface Installment {
   id: ID;

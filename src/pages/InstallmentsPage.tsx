@@ -1,17 +1,17 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Typography, Button, message } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useInstallments } from '@/hooks/useInstallments';
 import { ProviderGroup } from '@/components/installments/ProviderGroup';
 import { InstallmentForm, type InstallmentFormResult } from '@/components/installments/InstallmentForm';
-import type { InstallmentPlan, CardProvider } from '@/types';
-
-const PROVIDERS: CardProvider[] = ['KTC', 'UOB', 'SHOPEE'];
+import type { InstallmentPlan } from '@/types';
 
 export function InstallmentsPage() {
   const { plans, loading, create, update, remove, toggleInstallment } = useInstallments();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<InstallmentPlan | undefined>();
+
+  const providers = useMemo(() => [...new Set(plans.map((p) => p.provider))], [plans]);
 
   const handleEdit = (plan: InstallmentPlan) => {
     setEditing(plan);
@@ -44,7 +44,7 @@ export function InstallmentsPage() {
           เพิ่มรายการ
         </Button>
       </div>
-      {PROVIDERS.map((provider) => (
+      {providers.map((provider) => (
         <ProviderGroup
           key={provider}
           provider={provider}
@@ -60,6 +60,7 @@ export function InstallmentsPage() {
         onCancel={() => { setFormOpen(false); setEditing(undefined); }}
         onSubmit={handleSubmit}
         initialValues={editing}
+        existingProviders={providers}
       />
     </div>
   );

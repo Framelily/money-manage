@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { Layout, Typography } from 'antd';
-import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
+import { Layout, Typography, Button, Space } from 'antd';
+import { MenuFoldOutlined, MenuUnfoldOutlined, LogoutOutlined } from '@ant-design/icons';
+import { useAuth } from '@/contexts/AuthContext';
 import styled from 'styled-components';
 import { Sidebar } from './Sidebar';
 
@@ -47,6 +48,7 @@ const Logo = styled.div<{ $collapsed: boolean }>`
 
 export function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
+  const { user, logout } = useAuth();
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -70,9 +72,15 @@ export function AppLayout() {
           <TriggerIcon onClick={() => setCollapsed(!collapsed)}>
             {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
           </TriggerIcon>
-          <Typography.Title level={5} style={{ margin: 0 }}>
+          <Typography.Title level={5} style={{ margin: 0, flex: 1 }}>
             สรุปการเงินส่วนตัว
           </Typography.Title>
+          <Space>
+            <Typography.Text type="secondary">{user?.username}</Typography.Text>
+            <Button type="text" icon={<LogoutOutlined />} onClick={logout}>
+              ออกจากระบบ
+            </Button>
+          </Space>
         </StyledHeader>
         <StyledContent>
           <Outlet />

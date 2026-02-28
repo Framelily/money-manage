@@ -4,7 +4,10 @@ import thTH from 'antd/locale/th_TH';
 import { ThemeProvider } from 'styled-components';
 import { theme } from '@/styles/theme';
 import { GlobalStyle } from '@/styles/GlobalStyle';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { AppLayout } from '@/components/layout/AppLayout';
+import { LoginPage } from '@/pages/LoginPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { InstallmentsPage } from '@/pages/InstallmentsPage';
 import { BudgetPage } from '@/pages/BudgetPage';
@@ -24,14 +27,19 @@ export default function App() {
       <ThemeProvider theme={theme}>
         <GlobalStyle />
         <BrowserRouter>
-          <Routes>
-            <Route element={<AppLayout />}>
-              <Route path="/" element={<DashboardPage />} />
-              <Route path="/installments" element={<InstallmentsPage />} />
-              <Route path="/budget" element={<BudgetPage />} />
-              <Route path="/debts" element={<DebtsPage />} />
-            </Route>
-          </Routes>
+          <AuthProvider>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route element={<ProtectedRoute />}>
+                <Route element={<AppLayout />}>
+                  <Route path="/" element={<DashboardPage />} />
+                  <Route path="/installments" element={<InstallmentsPage />} />
+                  <Route path="/budget" element={<BudgetPage />} />
+                  <Route path="/debts" element={<DebtsPage />} />
+                </Route>
+              </Route>
+            </Routes>
+          </AuthProvider>
         </BrowserRouter>
       </ThemeProvider>
     </ConfigProvider>

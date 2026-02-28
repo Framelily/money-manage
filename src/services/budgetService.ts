@@ -1,44 +1,68 @@
-import { v4 as uuid } from 'uuid';
 import type { BudgetItem, MonthBE, Baht } from '@/types';
 import { MONTHS_BE } from '@/types';
-import { budgetItems } from '@/data/budget';
-import { simulateDelay } from './api';
+import api from './api';
 
-let items = [...budgetItems];
+interface ApiBudgetMonthlyValue {
+  id: string;
+  budgetItemId: string;
+  month: MonthBE;
+  value: number;
+}
+
+interface ApiBudgetItem {
+  id: string;
+  name: string;
+  category: BudgetItem['category'];
+  monthlyValues: ApiBudgetMonthlyValue[];
+}
+
+function transformBudgetItem(item: ApiBudgetItem): BudgetItem {
+  const monthlyValues = {} as Record<MonthBE, Baht>;
+  MONTHS_BE.forEach((m) => { monthlyValues[m] = 0; });
+  item.monthlyValues?.forEach((mv) => { monthlyValues[mv.month] = mv.value; });
+  return {
+    id: item.id,
+    name: item.name,
+    category: item.category,
+    monthlyValues,
+  };
+}
 
 export const budgetService = {
   async getAll(): Promise<BudgetItem[]> {
-    return simulateDelay([...items]);
+    const { data } = await api.get<ApiBudgetItem[]>('/budget');
+    return data.map(transformBudgetItem);
   },
 
   async getById(id: string): Promise<BudgetItem | undefined> {
-    return simulateDelay(items.find((i) => i.id === id));
+    const { data } = await api.get<ApiBudgetItem>(`/budget/${id}`);
+    return transformBudgetItem(data);
   },
 
   async create(data: Omit<BudgetItem, 'id'>): Promise<BudgetItem> {
-    const newItem: BudgetItem = { ...data, id: uuid() };
-    items = [...items, newItem];
-    return simulateDelay(newItem);
+    const { data: created } = await api.post<ApiBudgetItem>('/budget', {
+      name: data.name,
+      category: data.category,
+      monthlyValues: data.monthlyValues,
+    });
+    return transformBudgetItem(created);
   },
 
   async update(id: string, data: Partial<BudgetItem>): Promise<BudgetItem> {
-    items = items.map((i) => (i.id === id ? { ...i, ...data } : i));
-    const updated = items.find((i) => i.id === id)!;
-    return simulateDelay(updated);
+    const { data: updated } = await api.put<ApiBudgetItem>(`/budget/${id}`, {
+      name: data.name,
+      category: data.category,
+    });
+    return transformBudgetItem(updated);
   },
 
   async updateMonthlyValue(id: string, month: MonthBE, value: Baht): Promise<BudgetItem> {
-    items = items.map((i) => {
-      if (i.id !== id) return i;
-      return { ...i, monthlyValues: { ...i.monthlyValues, [month]: value } };
-    });
-    const updated = items.find((i) => i.id === id)!;
-    return simulateDelay(updated);
+    const { data: updated } = await api.patch<ApiBudgetItem>(`/budget/${id}/month`, { month, value });
+    return transformBudgetItem(updated);
   },
 
   async delete(id: string): Promise<void> {
-    items = items.filter((i) => i.id !== id);
-    return simulateDelay(undefined);
+    await api.delete(`/budget/${id}`);
   },
 
   getEmptyMonthlyValues(): Record<MonthBE, Baht> {

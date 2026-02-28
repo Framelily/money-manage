@@ -10,6 +10,7 @@ function generateInstallments(
   return Array.from({ length: count }, (_, i) => ({
     id: uuid(),
     month: i + 1,
+    year: 0,
     installmentNumber: i + 1,
     amount: perMonth,
     status: (i < paid ? 'paid' : 'unpaid') as 'paid' | 'unpaid',

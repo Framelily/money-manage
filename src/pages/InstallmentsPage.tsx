@@ -3,7 +3,7 @@ import { Typography, Button, message } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useInstallments } from '@/hooks/useInstallments';
 import { ProviderGroup } from '@/components/installments/ProviderGroup';
-import { InstallmentForm } from '@/components/installments/InstallmentForm';
+import { InstallmentForm, type InstallmentFormResult } from '@/components/installments/InstallmentForm';
 import type { InstallmentPlan, CardProvider } from '@/types';
 
 const PROVIDERS: CardProvider[] = ['KTC', 'UOB', 'SHOPEE'];
@@ -23,9 +23,10 @@ export function InstallmentsPage() {
     message.success('ลบรายการสำเร็จ');
   };
 
-  const handleSubmit = async (values: Omit<InstallmentPlan, 'id' | 'installments'>) => {
+  const handleSubmit = async (values: InstallmentFormResult) => {
     if (editing) {
-      await update(editing.id, values);
+      const { installments: _, ...planValues } = values;
+      await update(editing.id, planValues);
       message.success('แก้ไขสำเร็จ');
     } else {
       await create(values);

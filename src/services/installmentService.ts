@@ -17,7 +17,7 @@ export const installmentService = {
     return data;
   },
 
-  async create(data: Omit<InstallmentPlan, 'id' | 'installments'> & { installments?: Installment[] }): Promise<InstallmentPlan> {
+  async create(data: Omit<InstallmentPlan, 'id' | 'installments'> & { installments?: Omit<Installment, 'id'>[] }): Promise<InstallmentPlan> {
     const { data: created } = await api.post('/installments', data);
     return created;
   },

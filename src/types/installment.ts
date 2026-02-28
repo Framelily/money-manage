@@ -4,7 +4,8 @@ export type CardProvider = 'KTC' | 'UOB' | 'SHOPEE';
 
 export interface Installment {
   id: ID;
-  month: number; // installment number (1-based)
+  month: number; // index into MONTHS_BE (0 = เม.ย.)
+  year: number; // ปี พ.ศ.
   installmentNumber: number;
   amount: Baht;
   status: 'paid' | 'unpaid';

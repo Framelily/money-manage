@@ -44,7 +44,7 @@ export function BudgetChart({ items, loading }: Props) {
             <Bar dataKey="รายรับ" fill="#10b981" radius={[4, 4, 0, 0]} stackId="expenses" />
             <Bar dataKey="รายจ่ายประจำ" fill="#ef4444" radius={[0, 0, 0, 0]} />
             <Bar dataKey="รายจ่ายผันแปร" fill="#f97316" radius={[4, 4, 0, 0]} />
-            <Line type="monotone" dataKey="เงินคงเหลือ" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} />
+            <Line type="monotone" dataKey="เงินคงเหลือ" stroke="#7C3AED" strokeWidth={2} dot={{ r: 3, fill: '#7C3AED' }} />
           </ComposedChart>
         </ResponsiveContainer>
       )}

@@ -19,8 +19,8 @@ export default function App() {
       locale={thTH}
       theme={{
         token: {
-          fontFamily: "'Noto Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif",
-          colorPrimary: '#4f46e5',
+          fontFamily: "'Inter', 'Noto Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif",
+          colorPrimary: '#7C3AED',
         },
       }}
     >

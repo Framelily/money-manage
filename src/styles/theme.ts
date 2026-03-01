@@ -1,7 +1,7 @@
 export const theme = {
   colors: {
-    primary: '#4f46e5',
-    primaryLight: '#818cf8',
+    primary: '#7C3AED',
+    primaryLight: '#8B5CF6',
     income: '#10b981',
     incomeBg: '#ecfdf5',
     expense: '#ef4444',
@@ -18,7 +18,7 @@ export const theme = {
     border: '#e5e7eb',
   },
   fonts: {
-    body: "'Noto Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif",
+    body: "'Inter', 'Noto Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif",
   },
 } as const;
 

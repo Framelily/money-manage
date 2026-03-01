@@ -20,10 +20,10 @@ export function DashboardPage() {
   );
 
   return (
-    <div className="flex flex-col gap-6">
-      <Typography.Title level={3}>แดชบอร์ด</Typography.Title>
+    <div className="flex flex-col gap-4 sm:gap-6">
+      <Typography.Title level={4} className="!mb-0 sm:!text-2xl">แดชบอร์ด</Typography.Title>
       <SummaryCards budgetItems={allBudgetItems} plans={plans} debts={debts} loading={loading} />
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <IncomeExpenseChart budgetItems={allBudgetItems} loading={loading} />
         <DebtStatusChart plans={plans} loading={loading} />
       </div>

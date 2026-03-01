@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Card, Form, Input, Button, Typography, message } from 'antd';
-import { UserOutlined, LockOutlined } from '@ant-design/icons';
+import { UserIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function LoginPage() {
@@ -28,9 +28,9 @@ export function LoginPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f5f5' }}>
-      <Card style={{ width: 400, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-        <Typography.Title level={3} style={{ textAlign: 'center', color: '#4f46e5' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F9FAFB', padding: 16 }}>
+      <Card style={{ width: '100%', maxWidth: 400, border: '1px solid #E5E7EB', boxShadow: 'none' }}>
+        <Typography.Title level={3} style={{ textAlign: 'center', color: '#7C3AED' }}>
           {isRegister ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ'}
         </Typography.Title>
         <Typography.Text type="secondary" style={{ display: 'block', textAlign: 'center', marginBottom: 24 }}>
@@ -44,7 +44,7 @@ export function LoginPage() {
               ...(isRegister ? [{ min: 3, message: 'ชื่อผู้ใช้ต้องมีอย่างน้อย 3 ตัวอักษร' }] : []),
             ]}
           >
-            <Input prefix={<UserOutlined />} placeholder="ชื่อผู้ใช้" />
+            <Input prefix={<UserIcon className="w-4 h-4 text-gray-400" />} placeholder="ชื่อผู้ใช้" />
           </Form.Item>
           <Form.Item
             name="password"
@@ -53,7 +53,7 @@ export function LoginPage() {
               ...(isRegister ? [{ min: 6, message: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' }] : []),
             ]}
           >
-            <Input.Password prefix={<LockOutlined />} placeholder="รหัสผ่าน" />
+            <Input.Password prefix={<LockClosedIcon className="w-4 h-4 text-gray-400" />} placeholder="รหัสผ่าน" />
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit" loading={loading} block>

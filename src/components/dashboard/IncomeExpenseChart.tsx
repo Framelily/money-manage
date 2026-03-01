@@ -42,7 +42,7 @@ export function IncomeExpenseChart({ budgetItems, loading }: Props) {
             <Legend />
             <Bar dataKey="รายรับ" fill="#10b981" radius={[4, 4, 0, 0]} />
             <Bar dataKey="รายจ่ายรวม" fill="#ef4444" radius={[4, 4, 0, 0]} />
-            <Line type="monotone" dataKey="เงินคงเหลือ" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} />
+            <Line type="monotone" dataKey="เงินคงเหลือ" stroke="#7C3AED" strokeWidth={2} dot={{ r: 3, fill: '#7C3AED' }} />
           </ComposedChart>
         </ResponsiveContainer>
       )}

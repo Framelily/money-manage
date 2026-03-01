@@ -1,20 +1,24 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Menu } from 'antd';
 import {
-  DashboardOutlined,
-  CreditCardOutlined,
-  WalletOutlined,
-  TeamOutlined,
-} from '@ant-design/icons';
+  Squares2X2Icon,
+  CreditCardIcon,
+  WalletIcon,
+  UserGroupIcon,
+} from '@heroicons/react/24/outline';
+
+interface Props {
+  onNavigate?: () => void;
+}
 
 const menuItems = [
-  { key: '/', icon: <DashboardOutlined />, label: 'แดชบอร์ด' },
-  { key: '/installments', icon: <CreditCardOutlined />, label: 'หนี้ผ่อนชำระ' },
-  { key: '/budget', icon: <WalletOutlined />, label: 'งบรายเดือน' },
-  { key: '/debts', icon: <TeamOutlined />, label: 'คนที่เป็นหนี้เรา' },
+  { key: '/', icon: <Squares2X2Icon className="w-[18px] h-[18px]" />, label: 'แดชบอร์ด' },
+  { key: '/installments', icon: <CreditCardIcon className="w-[18px] h-[18px]" />, label: 'หนี้ผ่อนชำระ' },
+  { key: '/budget', icon: <WalletIcon className="w-[18px] h-[18px]" />, label: 'งบรายเดือน' },
+  { key: '/debts', icon: <UserGroupIcon className="w-[18px] h-[18px]" />, label: 'คนที่เป็นหนี้เรา' },
 ];
 
-export function Sidebar() {
+export function Sidebar({ onNavigate }: Props) {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -23,8 +27,11 @@ export function Sidebar() {
       mode="inline"
       selectedKeys={[location.pathname]}
       items={menuItems}
-      onClick={({ key }) => navigate(key)}
-      style={{ borderInlineEnd: 'none', height: '100%' }}
+      onClick={({ key }) => {
+        navigate(key);
+        onNavigate?.();
+      }}
+      style={{ borderInlineEnd: 'none' }}
     />
   );
 }

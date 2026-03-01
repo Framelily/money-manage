@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@ant-design/icons": "^5.5.1",
+    "@heroicons/react": "^2.2.0",
     "antd": "^5.22.0",
     "axios": "^1.13.6",
     "dayjs": "^1.11.13",

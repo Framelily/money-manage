@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Typography, Button, Select, message } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusIcon } from '@heroicons/react/24/outline';
 import { useBudget } from '@/hooks/useBudget';
 import { useInstallments } from '@/hooks/useInstallments';
 import { BudgetTable } from '@/components/budget/BudgetTable';
@@ -49,10 +49,10 @@ export function BudgetPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex justify-between items-center">
+    <div className="flex flex-col gap-4 sm:gap-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <div className="flex items-center gap-3">
-          <Typography.Title level={3} style={{ margin: 0 }}>งบรายเดือน</Typography.Title>
+          <Typography.Title level={4} style={{ margin: 0 }}>งบรายเดือน</Typography.Title>
           <Select
             value={year}
             onChange={setYear}
@@ -60,7 +60,7 @@ export function BudgetPage() {
             style={{ width: 100 }}
           />
         </div>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => { setEditing(undefined); setFormOpen(true); }}>
+        <Button type="primary" icon={<PlusIcon className="w-4 h-4" />} onClick={() => { setEditing(undefined); setFormOpen(true); }} block className="sm:!w-auto">
           เพิ่มรายการ
         </Button>
       </div>

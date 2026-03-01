@@ -55,7 +55,8 @@ export function BudgetItemForm({ open, onCancel, onSubmit, initialValues }: Prop
       onOk={handleOk}
       okText={initialValues ? 'บันทึก' : 'เพิ่ม'}
       cancelText="ยกเลิก"
-      width={600}
+      width="100%"
+      style={{ maxWidth: 600 }}
       destroyOnClose
     >
       <Form form={form} layout="vertical" initialValues={{ category: 'fixedExpense' as BudgetCategory, ...budgetService.getEmptyMonthlyValues() }}>
@@ -69,7 +70,7 @@ export function BudgetItemForm({ open, onCancel, onSubmit, initialValues }: Prop
         <Form.Item name="name" label="ชื่อรายการ" rules={[{ required: true, message: 'กรุณากรอกชื่อรายการ' }]}>
           <Input />
         </Form.Item>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {MONTHS_BE.map((month) => (
             <Form.Item key={month} name={month} label={month}>
               <InputNumber style={{ width: '100%' }} min={0} />

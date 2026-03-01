@@ -72,6 +72,7 @@ export function InstallmentTable({ plan, onToggle }: Props) {
       rowKey="id"
       size="small"
       pagination={false}
+      scroll={{ x: 500 }}
     />
   );
 }

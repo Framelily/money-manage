@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Typography, Button, message } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusIcon } from '@heroicons/react/24/outline';
 import { useInstallments } from '@/hooks/useInstallments';
 import { ProviderGroup } from '@/components/installments/ProviderGroup';
 import { InstallmentForm, type InstallmentFormResult } from '@/components/installments/InstallmentForm';
@@ -37,10 +37,10 @@ export function InstallmentsPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex justify-between items-center">
-        <Typography.Title level={3} style={{ margin: 0 }}>หนี้ผ่อนชำระ</Typography.Title>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => { setEditing(undefined); setFormOpen(true); }}>
+    <div className="flex flex-col gap-4 sm:gap-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+        <Typography.Title level={4} style={{ margin: 0 }}>หนี้ผ่อนชำระ</Typography.Title>
+        <Button type="primary" icon={<PlusIcon className="w-4 h-4" />} onClick={() => { setEditing(undefined); setFormOpen(true); }} block className="sm:!w-auto">
           เพิ่มรายการ
         </Button>
       </div>

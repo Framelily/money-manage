@@ -106,7 +106,8 @@ export function InstallmentForm({ open, onCancel, onSubmit, initialValues, exist
       okText={initialValues ? 'บันทึก' : 'เพิ่ม'}
       cancelText="ยกเลิก"
       destroyOnClose
-      width={600}
+      width="100%"
+      style={{ maxWidth: 600 }}
     >
       <Form form={form} layout="vertical" initialValues={{ isClosed: false, startMonth: 0, startYear: CURRENT_YEAR_BE }}>
         <Form.Item name="provider" label="Provider" rules={[{ required: true, message: 'กรุณาเลือกหรือพิมพ์ชื่อ Provider' }]}>
@@ -173,7 +174,7 @@ export function InstallmentForm({ open, onCancel, onSubmit, initialValues, exist
                   <td style={{ padding: '4px 8px', textAlign: 'right' }}>
                     <InputNumber
                       size="small"
-                      style={{ width: 120 }}
+                      style={{ width: '100%', minWidth: 80 }}
                       min={0}
                       value={d.amount}
                       onChange={(val) => updateDraftAmount(i, val ?? 0)}

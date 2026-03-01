@@ -1,10 +1,10 @@
 import { Card, Statistic, Skeleton } from 'antd';
 import {
-  DollarOutlined,
-  ShoppingCartOutlined,
-  CreditCardOutlined,
-  TeamOutlined,
-} from '@ant-design/icons';
+  BanknotesIcon,
+  ShoppingCartIcon,
+  CreditCardIcon,
+  UserGroupIcon,
+} from '@heroicons/react/24/outline';
 import styled from 'styled-components';
 import type { BudgetItem, InstallmentPlan, PersonDebt } from '@/types';
 import { MONTHS_BE } from '@/types';
@@ -18,11 +18,27 @@ interface Props {
   loading: boolean;
 }
 
-const StyledCard = styled(Card)<{ $borderColor: string }>`
-  border-left: 4px solid ${({ $borderColor }) => $borderColor};
+const StyledCard = styled(Card)`
+  .ant-statistic-title {
+    font-size: 12px;
+  }
   .ant-statistic-content-value {
-    font-size: 24px;
-    font-weight: 700;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .ant-statistic-content-suffix {
+    font-size: 14px;
+  }
+  @media (min-width: 640px) {
+    .ant-statistic-title {
+      font-size: 14px;
+    }
+    .ant-statistic-content-value {
+      font-size: 24px;
+    }
+    .ant-statistic-content-suffix {
+      font-size: 18px;
+    }
   }
 `;
 
@@ -57,36 +73,36 @@ export function SummaryCards({ budgetItems, plans, debts, loading }: Props) {
       title: 'รายรับเฉลี่ยต่อเดือน',
       value: avgIncome,
       color: '#10b981',
-      icon: <DollarOutlined />,
+      icon: <BanknotesIcon className="w-5 h-5" />,
       desc: 'เงินเดือน + รายได้เสริม',
     },
     {
       title: 'รายจ่ายประจำ/เดือน',
       value: avgFixedExpense,
       color: '#ef4444',
-      icon: <ShoppingCartOutlined />,
+      icon: <ShoppingCartIcon className="w-5 h-5" />,
       desc: 'ผ่อนบ้าน + ค่าใช้จ่ายคงที่',
     },
     {
       title: 'หนี้คงค้างรวม',
       value: totalDebtRemaining,
       color: '#f59e0b',
-      icon: <CreditCardOutlined />,
+      icon: <CreditCardIcon className="w-5 h-5" />,
       desc: 'KTC + UOB + Shopee',
     },
     {
       title: 'คนที่เป็นหนี้เรา',
       value: totalPeopleDebt,
       color: '#8b5cf6',
-      icon: <TeamOutlined />,
+      icon: <UserGroupIcon className="w-5 h-5" />,
       desc: 'ยอดค้างชำระ',
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       {cards.map((c) => (
-        <StyledCard key={c.title} $borderColor={c.color}>
+        <StyledCard key={c.title}>
           {loading ? (
             <Skeleton active paragraph={{ rows: 1 }} />
           ) : (

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Typography, Button, message } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusIcon } from '@heroicons/react/24/outline';
 import { useDebts } from '@/hooks/useDebts';
 import { DebtCard } from '@/components/debts/DebtCard';
 import { DebtForm } from '@/components/debts/DebtForm';
@@ -39,17 +39,17 @@ export function DebtsPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex justify-between items-center">
-        <Typography.Title level={3} style={{ margin: 0 }}>คนที่เป็นหนี้เรา</Typography.Title>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => { setEditing(undefined); setFormOpen(true); }}>
+    <div className="flex flex-col gap-4 sm:gap-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+        <Typography.Title level={4} style={{ margin: 0 }}>คนที่เป็นหนี้เรา</Typography.Title>
+        <Button type="primary" icon={<PlusIcon className="w-4 h-4" />} onClick={() => { setEditing(undefined); setFormOpen(true); }} block className="sm:!w-auto">
           เพิ่มรายการ
         </Button>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {loading
           ? Array.from({ length: 3 }, (_, i) => (
-              <div key={i} className="bg-white rounded-xl shadow p-5 animate-pulse h-48" />
+              <div key={i} className="bg-white rounded-xl p-5 animate-pulse h-48" style={{ border: '1px solid #E5E7EB' }} />
             ))
           : debts.map((debt) => (
               <DebtCard

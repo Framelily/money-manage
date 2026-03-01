@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Modal, Timeline, InputNumber, Input, Button, Empty } from 'antd';
-import { DollarOutlined } from '@ant-design/icons';
+import { CurrencyDollarIcon } from '@heroicons/react/24/outline';
 import type { PersonDebt } from '@/types';
 import { formatBaht } from '@/utils/format';
 
@@ -31,12 +31,13 @@ export function PaymentHistory({ debt, open, onClose, onRecordPayment }: Props) 
       open={open}
       onCancel={onClose}
       footer={null}
-      width={500}
+      width="100%"
+      style={{ maxWidth: 500 }}
     >
       {debt.status === 'active' && (
         <div className="mb-6 p-4 bg-gray-50 rounded-lg">
           <p className="text-sm font-medium mb-2">บันทึกการจ่ายเงิน</p>
-          <div className="flex gap-2 mb-2">
+          <div className="flex flex-col sm:flex-row gap-2 mb-2">
             <InputNumber
               value={amount}
               onChange={(v) => setAmount(v ?? 0)}
@@ -46,7 +47,7 @@ export function PaymentHistory({ debt, open, onClose, onRecordPayment }: Props) 
             />
             <Button
               type="primary"
-              icon={<DollarOutlined />}
+              icon={<CurrencyDollarIcon className="w-4 h-4" />}
               onClick={handleSubmit}
               loading={submitting}
               disabled={!amount || amount <= 0}

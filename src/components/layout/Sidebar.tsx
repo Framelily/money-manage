@@ -5,6 +5,7 @@ import {
   CreditCardIcon,
   WalletIcon,
   UserGroupIcon,
+  CalculatorIcon,
 } from '@heroicons/react/24/outline';
 
 interface Props {
@@ -16,6 +17,7 @@ const menuItems = [
   { key: '/installments', icon: <CreditCardIcon className="w-[18px] h-[18px]" />, label: 'หนี้ผ่อนชำระ' },
   { key: '/budget', icon: <WalletIcon className="w-[18px] h-[18px]" />, label: 'งบรายเดือน' },
   { key: '/debts', icon: <UserGroupIcon className="w-[18px] h-[18px]" />, label: 'คนที่เป็นหนี้เรา' },
+  { key: '/payoff', icon: <CalculatorIcon className="w-[18px] h-[18px]" />, label: 'วิเคราะห์ปิดหนี้' },
 ];
 
 export function Sidebar({ onNavigate }: Props) {

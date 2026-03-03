@@ -12,6 +12,7 @@ import { DashboardPage } from '@/pages/DashboardPage';
 import { InstallmentsPage } from '@/pages/InstallmentsPage';
 import { BudgetPage } from '@/pages/BudgetPage';
 import { DebtsPage } from '@/pages/DebtsPage';
+import { PayoffPage } from '@/pages/PayoffPage';
 
 export default function App() {
   return (
@@ -37,6 +38,7 @@ export default function App() {
                     <Route path="/installments" element={<InstallmentsPage />} />
                     <Route path="/budget" element={<BudgetPage />} />
                     <Route path="/debts" element={<DebtsPage />} />
+                    <Route path="/payoff" element={<PayoffPage />} />
                   </Route>
                 </Route>
               </Routes>

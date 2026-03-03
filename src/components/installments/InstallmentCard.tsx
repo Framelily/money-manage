@@ -14,9 +14,10 @@ export function InstallmentCard({ plan, onEdit, onDelete }: Props) {
   const progress = calculateInstallmentProgress(plan);
   const remaining = calculateInstallmentRemaining(plan);
   const paidCount = plan.installments.filter((i) => i.status === 'paid').length;
+  const isClosed = plan.isClosed || remaining === 0;
 
   return (
-    <Card size="small" styles={{ body: { padding: 16 } }}>
+    <Card size="small" styles={{ body: { padding: 16 } }} style={{ opacity: isClosed ? 0.55 : 1 }}>
       <div className="flex justify-between items-start mb-2">
         <span className="font-semibold truncate">{plan.name}</span>
         <div className="flex gap-1 flex-shrink-0 ml-2">
@@ -28,10 +29,13 @@ export function InstallmentCard({ plan, onEdit, onDelete }: Props) {
       </div>
       <div className="flex justify-between items-center text-sm mb-2 flex-wrap gap-1">
         <span className="text-gray-500">ยอดรวม {formatBaht(plan.totalAmount)}</span>
-        <Tag color={remaining === 0 ? 'green' : 'red'} style={{ margin: 0 }}>
-          {remaining === 0 ? 'ปิดแล้ว' : `คงเหลือ ${formatBaht(remaining)}`}
+        <Tag color={isClosed ? 'default' : 'red'} style={{ margin: 0 }}>
+          {isClosed ? 'ปิดแล้ว' : `คงเหลือ ${formatBaht(remaining)}`}
         </Tag>
       </div>
+      {plan.isClosed && remaining > 0 && (
+        <p className="text-xs text-gray-400 mb-2">ปิดยอดแล้ว (คงเหลือ {formatBaht(remaining)})</p>
+      )}
       {plan.perMonth && (
         <p className="text-xs text-gray-400 mb-2">งวดละ {formatBaht(plan.perMonth)}</p>
       )}
@@ -39,7 +43,7 @@ export function InstallmentCard({ plan, onEdit, onDelete }: Props) {
       <Progress
         percent={progress}
         size="small"
-        strokeColor={progress >= 100 ? '#10b981' : progress >= 50 ? '#f59e0b' : '#ef4444'}
+        strokeColor={isClosed ? '#9ca3af' : progress >= 100 ? '#10b981' : progress >= 50 ? '#f59e0b' : '#ef4444'}
       />
       {plan.totalInstallments && (
         <p className="text-xs text-gray-400 text-right mt-1">

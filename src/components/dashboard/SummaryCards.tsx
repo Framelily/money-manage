@@ -10,6 +10,7 @@ import type { BudgetItem, InstallmentPlan, PersonDebt } from '@/types';
 import { MONTHS_BE } from '@/types';
 import { calculateInstallmentRemaining } from '@/utils/calculations';
 import { formatNumber } from '@/utils/format';
+import { getProviderLabel } from '@/utils/providerConfig';
 
 interface Props {
   budgetItems: BudgetItem[];
@@ -59,7 +60,9 @@ export function SummaryCards({ budgetItems, plans, debts, loading }: Props) {
       )
     : 0;
 
-  const totalDebtRemaining = plans.reduce(
+  const activePlans = plans.filter((p) => !p.isClosed);
+
+  const totalDebtRemaining = activePlans.reduce(
     (sum, p) => sum + calculateInstallmentRemaining(p),
     0
   );
@@ -88,7 +91,7 @@ export function SummaryCards({ budgetItems, plans, debts, loading }: Props) {
       value: totalDebtRemaining,
       color: '#f59e0b',
       icon: <CreditCardIcon className="w-5 h-5" />,
-      desc: 'KTC + UOB + Shopee',
+      desc: [...new Set(activePlans.map((p) => getProviderLabel(p.provider)))].join(' + ') || '-',
     },
     {
       title: 'คนที่เป็นหนี้เรา',

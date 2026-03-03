@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Modal, Form, Input, InputNumber, Select, Switch, Button, AutoComplete } from 'antd';
+import { Modal, Form, Input, InputNumber, Select, Switch, Button, AutoComplete, ColorPicker } from 'antd';
+import type { Color } from 'antd/es/color-picker';
 import type { InstallmentPlan, Installment } from '@/types';
+import { getProviderChartColor } from '@/utils/providerConfig';
 
 const FULL_MONTHS_TH = [
   'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน',
@@ -25,6 +27,7 @@ interface Props {
   onSubmit: (values: InstallmentFormResult) => void;
   initialValues?: InstallmentPlan;
   existingProviders?: string[];
+  providerColorMap?: Record<string, string>;
 }
 
 const MONTH_OPTIONS = FULL_MONTHS_TH.map((label, i) => ({ value: i, label }));
@@ -54,20 +57,40 @@ function buildInstallments(
   });
 }
 
-export function InstallmentForm({ open, onCancel, onSubmit, initialValues, existingProviders = [] }: Props) {
+function toHex(value: string | Color): string {
+  if (typeof value === 'string') return value;
+  return value.toHexString();
+}
+
+export function InstallmentForm({ open, onCancel, onSubmit, initialValues, existingProviders = [], providerColorMap = {} }: Props) {
   const [form] = Form.useForm<FormValues>();
   const [drafts, setDrafts] = useState<DraftInstallment[]>([]);
+  const [colorValue, setColorValue] = useState<string>('#1677ff');
 
   useEffect(() => {
     if (open) {
       setDrafts([]);
       if (initialValues) {
         form.setFieldsValue(initialValues);
+        setColorValue(initialValues.providerColor ?? getProviderChartColor(initialValues.provider));
       } else {
         form.resetFields();
+        setColorValue('#1677ff');
       }
     }
   }, [open, initialValues, form]);
+
+  const handleProviderSelect = (value: string) => {
+    const existingColor = providerColorMap[value];
+    if (existingColor) {
+      setColorValue(existingColor);
+      form.setFieldValue('providerColor', existingColor);
+    } else {
+      const defaultColor = getProviderChartColor(value);
+      setColorValue(defaultColor);
+      form.setFieldValue('providerColor', defaultColor);
+    }
+  };
 
   const handleGenerate = async () => {
     try {
@@ -82,13 +105,15 @@ export function InstallmentForm({ open, onCancel, onSubmit, initialValues, exist
     setDrafts(buildInstallments(totalInstallments, perMonth, startMonth, startYear));
   };
 
-  const updateDraftAmount = (index: number, value: number) => {
-    setDrafts((prev) => prev.map((d, i) => i === index ? { ...d, amount: value } : d));
+  const updateDraftAmount = (index: number, value: number | null) => {
+    setDrafts((prev) => prev.map((d, i) => i === index ? { ...d, amount: value as number } : d));
   };
 
   const handleOk = async () => {
     const values = await form.validateFields();
     const { startMonth, startYear, ...planValues } = values;
+
+    planValues.providerColor = colorValue;
 
     const result: InstallmentFormResult = { ...planValues };
     if (!initialValues && drafts.length > 0) {
@@ -105,28 +130,50 @@ export function InstallmentForm({ open, onCancel, onSubmit, initialValues, exist
       onOk={handleOk}
       okText={initialValues ? 'บันทึก' : 'เพิ่ม'}
       cancelText="ยกเลิก"
-      destroyOnClose
+      destroyOnHidden
       width="100%"
       style={{ maxWidth: 600 }}
     >
       <Form form={form} layout="vertical" initialValues={{ isClosed: false, startMonth: 0, startYear: CURRENT_YEAR_BE }}>
-        <Form.Item name="provider" label="Provider" rules={[{ required: true, message: 'กรุณาเลือกหรือพิมพ์ชื่อ Provider' }]}>
+        <Form.Item name="provider" label="ผู้ให้บริการ" rules={[{ required: true, message: 'กรุณาเลือกหรือพิมพ์ชื่อผู้ให้บริการ' }]}>
           <AutoComplete
             placeholder="เลือกหรือพิมพ์ชื่อใหม่..."
             options={existingProviders.map((p) => ({ value: p }))}
             filterOption={(input, option) =>
               (option?.value as string ?? '').toLowerCase().includes(input.toLowerCase())
             }
+            onSelect={handleProviderSelect}
+          />
+        </Form.Item>
+        <Form.Item label="สีผู้ให้บริการ">
+          <ColorPicker
+            value={colorValue}
+            onChange={(color) => {
+              const hex = toHex(color);
+              setColorValue(hex);
+              form.setFieldValue('providerColor', hex);
+            }}
+            showText
           />
         </Form.Item>
         <Form.Item name="name" label="ชื่อรายการ" rules={[{ required: true, message: 'กรุณากรอกชื่อรายการ' }]}>
           <Input />
         </Form.Item>
         <Form.Item name="totalAmount" label="ยอดรวม (฿)" rules={[{ required: true, message: 'กรุณากรอกยอดรวม' }]}>
-          <InputNumber style={{ width: '100%' }} min={0} />
+          <InputNumber
+            style={{ width: '100%' }}
+            min={0}
+            onFocus={() => { if (form.getFieldValue('totalAmount') === 0) form.setFieldValue('totalAmount', null); }}
+            onBlur={() => { if (form.getFieldValue('totalAmount') == null) form.setFieldValue('totalAmount', 0); }}
+          />
         </Form.Item>
         <Form.Item name="perMonth" label="ค่างวด/เดือน (฿) — เว้นว่างถ้าแต่ละเดือนไม่เท่ากัน">
-          <InputNumber style={{ width: '100%' }} min={0} />
+          <InputNumber
+            style={{ width: '100%' }}
+            min={0}
+            onFocus={() => { if (form.getFieldValue('perMonth') === 0) form.setFieldValue('perMonth', null); }}
+            onBlur={() => { if (form.getFieldValue('perMonth') == null) form.setFieldValue('perMonth', 0); }}
+          />
         </Form.Item>
         <Form.Item name="totalInstallments" label="จำนวนงวดทั้งหมด" rules={[{ required: true, message: 'กรุณากรอกจำนวนงวด' }]}>
           <InputNumber style={{ width: '100%' }} min={1} />
@@ -178,6 +225,8 @@ export function InstallmentForm({ open, onCancel, onSubmit, initialValues, exist
                       min={0}
                       value={d.amount}
                       onChange={(val) => updateDraftAmount(i, val ?? 0)}
+                      onFocus={() => { if (d.amount === 0) updateDraftAmount(i, null); }}
+                      onBlur={() => { if (d.amount == null) updateDraftAmount(i, 0); }}
                     />
                   </td>
                 </tr>

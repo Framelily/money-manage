@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { Collapse, Tag, Skeleton } from 'antd';
 import type { InstallmentPlan, CardProvider } from '@/types';
 import { calculateProviderTotal } from '@/utils/calculations';
 import { formatBaht } from '@/utils/format';
+import { getProviderTagColor, getProviderLabel } from '@/utils/providerConfig';
 import { InstallmentCard } from './InstallmentCard';
 import { InstallmentTable } from './InstallmentTable';
 
@@ -14,34 +16,28 @@ interface Props {
   onToggleInstallment: (planId: string, installmentId: string) => void;
 }
 
-const PROVIDER_COLORS: Record<CardProvider, string> = {
-  KTC: 'red',
-  UOB: 'blue',
-  SHOPEE: 'orange',
-};
-
-const PROVIDER_LABELS: Record<CardProvider, string> = {
-  KTC: 'KTC',
-  UOB: 'UOB',
-  SHOPEE: 'Shopee PayLater',
-};
-
 export function ProviderGroup({ provider, plans, loading, onEdit, onDelete, onToggleInstallment }: Props) {
   if (loading) return <Skeleton active paragraph={{ rows: 3 }} />;
   if (!plans.length) return null;
 
-  const total = calculateProviderTotal(plans);
+  const activePlans = plans.filter((p) => !p.isClosed);
+  const closedCount = plans.length - activePlans.length;
+  const total = calculateProviderTotal(activePlans);
+  const colorOverride = plans[0]?.providerColor;
+  const [activeKey, setActiveKey] = useState<string[]>([]);
 
   return (
     <Collapse
-      defaultActiveKey={[provider]}
+      activeKey={activeKey}
+      onChange={(keys) => setActiveKey(keys as string[])}
       items={[
         {
           key: provider,
           label: (
             <div className="flex items-center gap-2">
-              <Tag color={PROVIDER_COLORS[provider]}>{PROVIDER_LABELS[provider]}</Tag>
+              <Tag color={getProviderTagColor(provider, colorOverride)}>{getProviderLabel(provider)}</Tag>
               <span className="text-sm text-gray-500">คงเหลือ {formatBaht(total)}</span>
+              {closedCount > 0 && <Tag color="default">{closedCount} ปิดแล้ว</Tag>}
             </div>
           ),
           children: (

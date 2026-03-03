@@ -12,7 +12,7 @@ interface Props {
 }
 
 export function PaymentHistory({ debt, open, onClose, onRecordPayment }: Props) {
-  const [amount, setAmount] = useState<number>(debt.installmentAmount ?? 0);
+  const [amount, setAmount] = useState<number | null>(debt.installmentAmount ?? 0);
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -40,10 +40,12 @@ export function PaymentHistory({ debt, open, onClose, onRecordPayment }: Props) 
           <div className="flex flex-col sm:flex-row gap-2 mb-2">
             <InputNumber
               value={amount}
-              onChange={(v) => setAmount(v ?? 0)}
+              onChange={(v) => setAmount(v)}
               min={0}
               addonBefore="฿"
               className="flex-1"
+              onFocus={() => { if (amount === 0) setAmount(null); }}
+              onBlur={() => { if (amount == null) setAmount(0); }}
             />
             <Button
               type="primary"

@@ -3,33 +3,34 @@ import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recha
 import type { InstallmentPlan, CardProvider } from '@/types';
 import { calculateInstallmentRemaining } from '@/utils/calculations';
 import { formatNumber } from '@/utils/format';
+import { getProviderChartColor, getProviderLabel } from '@/utils/providerConfig';
 
 interface Props {
   plans: InstallmentPlan[];
   loading: boolean;
 }
 
-const PROVIDER_COLORS: Record<CardProvider, string> = {
-  KTC: '#ef4444',
-  UOB: '#3b82f6',
-  SHOPEE: '#f97316',
-};
-
 export function DebtStatusChart({ plans, loading }: Props) {
-  const grouped: Record<CardProvider, number> = { KTC: 0, UOB: 0, SHOPEE: 0 };
-  plans.forEach((p) => {
-    grouped[p.provider] += calculateInstallmentRemaining(p);
+  const activePlans = plans.filter((p) => !p.isClosed);
+  const grouped: Record<CardProvider, number> = {};
+  const providerColors: Record<CardProvider, string | undefined> = {};
+  activePlans.forEach((p) => {
+    grouped[p.provider] = (grouped[p.provider] || 0) + calculateInstallmentRemaining(p);
+    if (!providerColors[p.provider] && p.providerColor) {
+      providerColors[p.provider] = p.providerColor;
+    }
   });
 
   const data = (Object.entries(grouped) as [CardProvider, number][])
     .filter(([, v]) => v > 0)
     .map(([provider, value]) => ({
-      name: provider,
+      name: getProviderLabel(provider),
+      provider,
       value: Math.round(value * 100) / 100,
     }));
 
   return (
-    <Card title="หนี้คงค้างแยกตาม Provider">
+    <Card title="หนี้คงค้างแยกตามผู้ให้บริการ">
       {loading ? (
         <Skeleton active paragraph={{ rows: 6 }} />
       ) : (
@@ -46,7 +47,7 @@ export function DebtStatusChart({ plans, loading }: Props) {
               {data.map((entry) => (
                 <Cell
                   key={entry.name}
-                  fill={PROVIDER_COLORS[entry.name as CardProvider]}
+                  fill={getProviderChartColor(entry.provider, providerColors[entry.provider])}
                 />
               ))}
             </Pie>

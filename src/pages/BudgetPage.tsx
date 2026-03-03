@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Typography, Button, Select, message } from 'antd';
+import { Typography, Button, Select, App } from 'antd';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { useBudget } from '@/hooks/useBudget';
 import { useInstallments } from '@/hooks/useInstallments';
@@ -16,6 +16,7 @@ const YEAR_OPTIONS = Array.from({ length: 7 }, (_, i) => {
 });
 
 export function BudgetPage() {
+  const { message } = App.useApp();
   const { items, loading, year, setYear, create, update, updateMonthlyValue, remove } = useBudget();
   const { plans } = useInstallments();
   const [formOpen, setFormOpen] = useState(false);

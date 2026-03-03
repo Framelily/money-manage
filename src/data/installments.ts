@@ -21,6 +21,7 @@ export const ktcPlans: InstallmentPlan[] = [
   {
     id: uuid(),
     provider: 'KTC',
+    providerColor: '#ef4444',
     name: 'MI PAD',
     totalAmount: 7999,
     perMonth: 799.90,
@@ -31,6 +32,7 @@ export const ktcPlans: InstallmentPlan[] = [
   {
     id: uuid(),
     provider: 'KTC',
+    providerColor: '#ef4444',
     name: 'AIA (รอบ 2)',
     totalAmount: 13210.20,
     perMonth: 1321.02,
@@ -41,6 +43,7 @@ export const ktcPlans: InstallmentPlan[] = [
   {
     id: uuid(),
     provider: 'KTC',
+    providerColor: '#ef4444',
     name: 'แม่ผ่าตัด',
     totalAmount: 37700.62,
     perMonth: 3770.06,
@@ -51,6 +54,7 @@ export const ktcPlans: InstallmentPlan[] = [
   {
     id: uuid(),
     provider: 'KTC',
+    providerColor: '#ef4444',
     name: 'มือถือ',
     totalAmount: 47900,
     perMonth: 4790.00,
@@ -61,6 +65,7 @@ export const ktcPlans: InstallmentPlan[] = [
   {
     id: uuid(),
     provider: 'KTC',
+    providerColor: '#ef4444',
     name: 'กินเบียร์เลี้ยงรุ่น',
     totalAmount: 6800,
     perMonth: 623.68,
@@ -71,6 +76,7 @@ export const ktcPlans: InstallmentPlan[] = [
   {
     id: uuid(),
     provider: 'KTC',
+    providerColor: '#ef4444',
     name: 'แว่นใหม่',
     totalAmount: 12300,
     perMonth: 3075,
@@ -84,6 +90,7 @@ export const uobPlans: InstallmentPlan[] = [
   {
     id: uuid(),
     provider: 'UOB',
+    providerColor: '#3b82f6',
     name: 'iPad Mini',
     totalAmount: 14900,
     perMonth: 1490,
@@ -94,6 +101,7 @@ export const uobPlans: InstallmentPlan[] = [
   {
     id: uuid(),
     provider: 'UOB',
+    providerColor: '#3b82f6',
     name: 'โดนัทฝากจ่าย',
     totalAmount: 27051,
     perMonth: 2780,
@@ -104,6 +112,7 @@ export const uobPlans: InstallmentPlan[] = [
   {
     id: uuid(),
     provider: 'UOB',
+    providerColor: '#3b82f6',
     name: 'DJI Nano',
     totalAmount: 10700,
     perMonth: 1070,
@@ -114,6 +123,7 @@ export const uobPlans: InstallmentPlan[] = [
   {
     id: uuid(),
     provider: 'UOB',
+    providerColor: '#3b82f6',
     name: 'รองเท้า Asics',
     totalAmount: 4275,
     perMonth: 428,
@@ -124,6 +134,7 @@ export const uobPlans: InstallmentPlan[] = [
   {
     id: uuid(),
     provider: 'UOB',
+    providerColor: '#3b82f6',
     name: 'โยจิ รพ.ทองหล่อ',
     totalAmount: 10899.61,
     perMonth: 1090,
@@ -137,6 +148,7 @@ export const shopeePlans: InstallmentPlan[] = [
   {
     id: uuid(),
     provider: 'SHOPEE',
+    providerColor: '#f97316',
     name: 'Shopee PayLater (ยอดรวมคงเหลือ)',
     totalAmount: 80608.53,
     perMonth: null,

@@ -1,17 +1,20 @@
 import { useMemo, useState } from 'react';
-import { Typography, Button, message } from 'antd';
+import { Typography, Button, App } from 'antd';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { useInstallments } from '@/hooks/useInstallments';
 import { ProviderGroup } from '@/components/installments/ProviderGroup';
 import { InstallmentForm, type InstallmentFormResult } from '@/components/installments/InstallmentForm';
+import { buildProviderColorMap } from '@/utils/providerConfig';
 import type { InstallmentPlan } from '@/types';
 
 export function InstallmentsPage() {
+  const { message } = App.useApp();
   const { plans, loading, create, update, remove, toggleInstallment } = useInstallments();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<InstallmentPlan | undefined>();
 
   const providers = useMemo(() => [...new Set(plans.map((p) => p.provider))], [plans]);
+  const providerColorMap = useMemo(() => buildProviderColorMap(plans), [plans]);
 
   const handleEdit = (plan: InstallmentPlan) => {
     setEditing(plan);
@@ -61,6 +64,7 @@ export function InstallmentsPage() {
         onSubmit={handleSubmit}
         initialValues={editing}
         existingProviders={providers}
+        providerColorMap={providerColorMap}
       />
     </div>
   );

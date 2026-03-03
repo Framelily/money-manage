@@ -21,4 +21,5 @@ export interface InstallmentPlan {
   installments: Installment[];
   isClosed: boolean;
   note?: string;
+  providerColor?: string;
 }

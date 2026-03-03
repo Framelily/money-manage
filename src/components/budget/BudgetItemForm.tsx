@@ -57,7 +57,7 @@ export function BudgetItemForm({ open, onCancel, onSubmit, initialValues }: Prop
       cancelText="ยกเลิก"
       width="100%"
       style={{ maxWidth: 600 }}
-      destroyOnClose
+      destroyOnHidden
     >
       <Form form={form} layout="vertical" initialValues={{ category: 'fixedExpense' as BudgetCategory, ...budgetService.getEmptyMonthlyValues() }}>
         <Form.Item name="category" label="ประเภท" rules={[{ required: true }]}>
@@ -70,10 +70,26 @@ export function BudgetItemForm({ open, onCancel, onSubmit, initialValues }: Prop
         <Form.Item name="name" label="ชื่อรายการ" rules={[{ required: true, message: 'กรุณากรอกชื่อรายการ' }]}>
           <Input />
         </Form.Item>
+        <Form.Item label="เติมทุกเดือน (ถ้าเท่ากัน)">
+          <InputNumber
+            style={{ width: '100%' }}
+            min={0}
+            placeholder="กรอกแล้วเติมให้ทุกเดือน"
+            onChange={(value) => {
+              const fill = MONTHS_BE.reduce((acc, m) => ({ ...acc, [m]: value ?? 0 }), {});
+              form.setFieldsValue(fill);
+            }}
+          />
+        </Form.Item>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {MONTHS_BE.map((month) => (
             <Form.Item key={month} name={month} label={month}>
-              <InputNumber style={{ width: '100%' }} min={0} />
+              <InputNumber
+                style={{ width: '100%' }}
+                min={0}
+                onFocus={() => { if (form.getFieldValue(month) === 0) form.setFieldsValue({ [month]: null }); }}
+                onBlur={() => { if (form.getFieldValue(month) == null) form.setFieldsValue({ [month]: 0 }); }}
+              />
             </Form.Item>
           ))}
         </div>

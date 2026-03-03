@@ -6,11 +6,11 @@ export function useInstallments() {
   const [plans, setPlans] = useState<InstallmentPlan[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const refresh = useCallback(async () => {
-    setLoading(true);
+  const refresh = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     const data = await installmentService.getAll();
     setPlans(data);
-    setLoading(false);
+    if (!silent) setLoading(false);
   }, []);
 
   useEffect(() => { refresh(); }, [refresh]);
@@ -47,7 +47,7 @@ export function useInstallments() {
   const toggleInstallment = useCallback(
     async (planId: string, installmentId: string) => {
       await installmentService.toggleInstallment(planId, installmentId);
-      await refresh();
+      await refresh(true);
     },
     [refresh]
   );

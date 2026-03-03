@@ -41,7 +41,7 @@ export function DebtForm({ open, onCancel, onSubmit, initialValues }: Props) {
       onOk={handleOk}
       okText={initialValues ? 'บันทึก' : 'เพิ่ม'}
       cancelText="ยกเลิก"
-      destroyOnClose
+      destroyOnHidden
     >
       <Form form={form} layout="vertical" initialValues={{ paidAmount: 0 }}>
         <Form.Item name="name" label="ชื่อ" rules={[{ required: true, message: 'กรุณากรอกชื่อ' }]}>
@@ -51,13 +51,28 @@ export function DebtForm({ open, onCancel, onSubmit, initialValues }: Props) {
           <Input />
         </Form.Item>
         <Form.Item name="totalAmount" label="ยอดรวม (฿)" rules={[{ required: true, message: 'กรุณากรอกยอดรวม' }]}>
-          <InputNumber className="w-full" min={0} />
+          <InputNumber
+            className="w-full"
+            min={0}
+            onFocus={() => { if (form.getFieldValue('totalAmount') === 0) form.setFieldsValue({ totalAmount: null }); }}
+            onBlur={() => { if (form.getFieldValue('totalAmount') == null) form.setFieldsValue({ totalAmount: 0 }); }}
+          />
         </Form.Item>
         <Form.Item name="paidAmount" label="จ่ายแล้ว (฿)">
-          <InputNumber className="w-full" min={0} />
+          <InputNumber
+            className="w-full"
+            min={0}
+            onFocus={() => { if (form.getFieldValue('paidAmount') === 0) form.setFieldsValue({ paidAmount: null }); }}
+            onBlur={() => { if (form.getFieldValue('paidAmount') == null) form.setFieldsValue({ paidAmount: 0 }); }}
+          />
         </Form.Item>
         <Form.Item name="installmentAmount" label="งวดละ (฿)">
-          <InputNumber className="w-full" min={0} />
+          <InputNumber
+            className="w-full"
+            min={0}
+            onFocus={() => { if (form.getFieldValue('installmentAmount') === 0) form.setFieldsValue({ installmentAmount: null }); }}
+            onBlur={() => { if (form.getFieldValue('installmentAmount') == null) form.setFieldsValue({ installmentAmount: 0 }); }}
+          />
         </Form.Item>
       </Form>
     </Modal>

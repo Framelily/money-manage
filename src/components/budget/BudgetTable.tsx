@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Table, InputNumber, Button, Popconfirm, Tag } from 'antd';
+import { Table, InputNumber, Button, Popconfirm } from 'antd';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import type { BudgetItem, MonthBE, Baht, BudgetCategory } from '@/types';
 import { MONTHS_BE } from '@/types';
@@ -29,6 +29,27 @@ interface RowData {
   isReadOnly?: boolean;
   values: Record<MonthBE, number>;
   original?: BudgetItem;
+}
+
+function EditableCell({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const [focused, setFocused] = useState(false);
+  const [local, setLocal] = useState<number | null>(value);
+
+  useEffect(() => { if (!focused) setLocal(value); }, [value, focused]);
+
+  return (
+    <InputNumber
+      size="small"
+      value={focused ? local : value}
+      min={0}
+      formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+      parser={(v) => Number(v!.replace(/,/g, ''))}
+      onFocus={() => { setFocused(true); setLocal(value === 0 ? null : value); }}
+      onBlur={() => { if (local == null) onChange(0); setFocused(false); }}
+      onChange={(v) => { setLocal(v); onChange(v ?? 0); }}
+      style={{ width: '100%' }}
+    />
+  );
 }
 
 function useIsMobile() {
@@ -102,25 +123,14 @@ export function BudgetTable({ items, loading, onEdit, onDelete, onCellChange }: 
       render: (name: string, record: RowData) => {
         if (record.isSummary) return <strong style={{ color: CATEGORY_CONFIG[record.category].color }}>{name}</strong>;
         if (record.isRemaining) return <strong>{name}</strong>;
-        if (isMobile) {
-          // Mobile: compact — colored dot + name only
-          return (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{
-                width: 8, height: 8, borderRadius: '50%',
-                background: CATEGORY_CONFIG[record.category].color,
-                flexShrink: 0,
-              }} />
-              <span style={{ fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</span>
-            </div>
-          );
-        }
         return (
-          <div className="flex items-center gap-2">
-            <Tag color={CATEGORY_CONFIG[record.category].tagColor} style={{ margin: 0 }}>
-              {CATEGORY_CONFIG[record.category].label}
-            </Tag>
-            <span>{name}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{
+              width: 8, height: 8, borderRadius: '50%',
+              background: CATEGORY_CONFIG[record.category].color,
+              flexShrink: 0,
+            }} />
+            <span style={{ fontSize: isMobile ? 13 : 14, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</span>
           </div>
         );
       },
@@ -141,14 +151,7 @@ export function BudgetTable({ items, loading, onEdit, onDelete, onCellChange }: 
           return <span style={{ color: '#999' }}>{formatNumber(val)}</span>;
         }
         return (
-          <InputNumber
-            size="small"
-            value={val}
-            formatter={(v) => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-            parser={(v) => Number(v!.replace(/,/g, ''))}
-            onChange={(newVal) => onCellChange(record.id, month, newVal ?? 0)}
-            style={{ width: '100%' }}
-          />
+          <EditableCell value={val} onChange={(newVal) => onCellChange(record.id, month, newVal)} />
         );
       },
     })),

@@ -59,6 +59,7 @@ export function InstallmentTable({ plan, onToggle }: Props) {
       render: (_: unknown, record: Installment) => (
         <Checkbox
           checked={record.status === 'paid'}
+          disabled={plan.isClosed}
           onChange={() => onToggle(plan.id, record.id)}
         />
       ),
@@ -73,6 +74,7 @@ export function InstallmentTable({ plan, onToggle }: Props) {
       size="small"
       pagination={false}
       scroll={{ x: 500 }}
+      rowClassName={() => (plan.isClosed ? 'opacity-55' : '')}
     />
   );
 }

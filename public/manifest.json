@@ -1,0 +1,16 @@
+{
+  "name": "จัดการการเงินส่วนตัว",
+  "short_name": "จัดการเงิน",
+  "description": "แอปจัดการเงินส่วนตัว ติดตามรายรับรายจ่าย หนี้ผ่อนชำระ งบรายเดือน และวิเคราะห์แผนปิดหนี้",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f9fafb",
+  "theme_color": "#4DA8DA",
+  "icons": [
+    {
+      "src": "/logo.webp",
+      "sizes": "512x512",
+      "type": "image/webp"
+    }
+  ]
+}

@@ -23,7 +23,7 @@ const LABELS: Record<string, string> = {
 
 /** Fallback palette for dynamically added providers */
 const FALLBACK_TAG_COLORS = ['purple', 'cyan', 'green', 'magenta', 'geekblue', 'lime', 'gold', 'volcano'];
-const FALLBACK_CHART_COLORS = ['#8b5cf6', '#06b6d4', '#22c55e', '#ec4899', '#6366f1', '#84cc16', '#eab308', '#f97316'];
+const FALLBACK_CHART_COLORS = ['#3b82f6', '#06b6d4', '#22c55e', '#ec4899', '#6366f1', '#84cc16', '#eab308', '#f97316'];
 
 let dynamicIndex = 0;
 const assignedFallback: Record<string, number> = {};
@@ -43,7 +43,7 @@ const HEX_TO_ANTD_PRESET: Record<string, string> = {
   '#60a5fa': 'blue',
   '#f97316': 'orange',
   '#fb923c': 'orange',
-  '#8b5cf6': 'purple',
+  '#3b82f6': 'blue',
   '#06b6d4': 'cyan',
   '#22c55e': 'green',
   '#ec4899': 'magenta',

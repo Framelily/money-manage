@@ -46,7 +46,7 @@ const TriggerIcon = styled.span`
   height: 40px;
   border-radius: 8px;
   transition: background-color 0.15s;
-  &:hover { background: #F3F4F6; color: #7C3AED; }
+  &:hover { background: #F3F4F6; color: #4DA8DA; }
 `;
 
 const StyledContent = styled(Content)`
@@ -65,13 +65,21 @@ const Logo = styled.div<{ $collapsed: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   font-size: ${({ $collapsed }) => ($collapsed ? '16px' : '18px')};
   font-weight: 700;
-  color: #7C3AED;
+  color: #4DA8DA;
   white-space: nowrap;
   overflow: hidden;
   padding: 0 ${({ $collapsed }) => ($collapsed ? '8px' : '24px')};
   border-bottom: 1px solid #E5E7EB;
+
+  img {
+    height: ${({ $collapsed }) => ($collapsed ? '32px' : '36px')};
+    width: auto;
+    object-fit: contain;
+    transition: height 0.2s;
+  }
 `;
 
 const MobileDrawerHeader = styled.div`
@@ -85,7 +93,7 @@ const MobileDrawerHeader = styled.div`
 const MobileLogoText = styled.span`
   font-size: 18px;
   font-weight: 700;
-  color: #7C3AED;
+  color: #4DA8DA;
 `;
 
 const UserName = styled.span`
@@ -123,7 +131,8 @@ export function AppLayout() {
           style={{ background: '#fff', borderRight: '1px solid #E5E7EB' }}
         >
           <Logo $collapsed={collapsed}>
-            {collapsed ? '฿' : 'จัดการเงิน'}
+            <img src="/logo.webp" alt="จัดการเงิน" />
+            {!collapsed && 'จัดการเงิน'}
           </Logo>
           <Sidebar onNavigate={() => {}} />
         </Sider>
@@ -143,7 +152,10 @@ export function AppLayout() {
           }}
         >
           <MobileDrawerHeader>
-            <MobileLogoText>฿ จัดการเงิน</MobileLogoText>
+            <MobileLogoText>
+              <img src="/logo.webp" alt="จัดการเงิน" style={{ height: 32, width: 'auto', verticalAlign: 'middle', marginRight: 8 }} />
+              จัดการเงิน
+            </MobileLogoText>
             <Button
               type="text"
               icon={<XMarkIcon className="w-4 h-4" />}

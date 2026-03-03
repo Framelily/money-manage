@@ -33,7 +33,7 @@ export function Sidebar({ onNavigate }: Props) {
         navigate(key);
         onNavigate?.();
       }}
-      style={{ borderInlineEnd: 'none' }}
+      style={{ borderInlineEnd: 'none', fontWeight: 600 }}
     />
   );
 }

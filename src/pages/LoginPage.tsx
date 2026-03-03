@@ -31,7 +31,7 @@ export function LoginPage() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F9FAFB', padding: 16 }}>
       <Card style={{ width: '100%', maxWidth: 400, border: '1px solid #E5E7EB', boxShadow: 'none' }}>
-        <Typography.Title level={3} style={{ textAlign: 'center', color: '#7C3AED' }}>
+        <Typography.Title level={3} style={{ textAlign: 'center', color: '#4DA8DA' }}>
           {isRegister ? 'สมัครสมาชิก' : 'เข้าสู่ระบบ'}
         </Typography.Title>
         <Typography.Text type="secondary" style={{ display: 'block', textAlign: 'center', marginBottom: 24 }}>

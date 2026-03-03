@@ -96,7 +96,7 @@ export function SummaryCards({ budgetItems, plans, debts, loading }: Props) {
     {
       title: 'คนที่เป็นหนี้เรา',
       value: totalPeopleDebt,
-      color: '#8b5cf6',
+      color: '#4DA8DA',
       icon: <UserGroupIcon className="w-5 h-5" />,
       desc: 'ยอดค้างชำระ',
     },

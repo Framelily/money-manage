@@ -80,7 +80,7 @@ export function PayoffSummary({ result }: Props) {
           <Statistic title="เงินเหลือ" value={moneyLeft} prefix="฿" precision={2} valueStyle={{ color: '#10b981' }} />
         </Card>
         <Card size="small">
-          <Statistic title="ประหยัด/เดือน" value={maxMonthlySaving} prefix="฿" precision={2} valueStyle={{ color: '#7C3AED' }} />
+          <Statistic title="ประหยัด/เดือน" value={maxMonthlySaving} prefix="฿" precision={2} valueStyle={{ color: '#4DA8DA' }} />
         </Card>
       </div>
 

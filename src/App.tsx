@@ -21,7 +21,7 @@ export default function App() {
       theme={{
         token: {
           fontFamily: "'Inter', 'Noto Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif",
-          colorPrimary: '#7C3AED',
+          colorPrimary: '#4DA8DA',
         },
       }}
     >

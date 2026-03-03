@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { message } from 'antd';
+import { App } from 'antd';
 import api from '@/services/api';
 
 interface User {
@@ -25,6 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return stored ? JSON.parse(stored) : null;
   });
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
+  const { message } = App.useApp();
   const navigate = useNavigate();
 
   useEffect(() => {

@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { ConfigProvider } from 'antd';
+import { ConfigProvider, App as AntApp } from 'antd';
 import thTH from 'antd/locale/th_TH';
 import { ThemeProvider } from 'styled-components';
 import { theme } from '@/styles/theme';
@@ -24,24 +24,26 @@ export default function App() {
         },
       }}
     >
-      <ThemeProvider theme={theme}>
-        <GlobalStyle />
-        <BrowserRouter>
-          <AuthProvider>
-            <Routes>
-              <Route path="/login" element={<LoginPage />} />
-              <Route element={<ProtectedRoute />}>
-                <Route element={<AppLayout />}>
-                  <Route path="/" element={<DashboardPage />} />
-                  <Route path="/installments" element={<InstallmentsPage />} />
-                  <Route path="/budget" element={<BudgetPage />} />
-                  <Route path="/debts" element={<DebtsPage />} />
+      <AntApp>
+        <ThemeProvider theme={theme}>
+          <GlobalStyle />
+          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <AuthProvider>
+              <Routes>
+                <Route path="/login" element={<LoginPage />} />
+                <Route element={<ProtectedRoute />}>
+                  <Route element={<AppLayout />}>
+                    <Route path="/" element={<DashboardPage />} />
+                    <Route path="/installments" element={<InstallmentsPage />} />
+                    <Route path="/budget" element={<BudgetPage />} />
+                    <Route path="/debts" element={<DebtsPage />} />
+                  </Route>
                 </Route>
-              </Route>
-            </Routes>
-          </AuthProvider>
-        </BrowserRouter>
-      </ThemeProvider>
+              </Routes>
+            </AuthProvider>
+          </BrowserRouter>
+        </ThemeProvider>
+      </AntApp>
     </ConfigProvider>
   );
 }

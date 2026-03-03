@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Card, Form, Input, Button, Typography, message } from 'antd';
+import { Card, Form, Input, Button, Typography, App } from 'antd';
 import { UserIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function LoginPage() {
   const [isRegister, setIsRegister] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { message } = App.useApp();
   const { login, register } = useAuth();
   const [form] = Form.useForm();
 

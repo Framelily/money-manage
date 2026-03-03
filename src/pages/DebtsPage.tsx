@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Typography, Button, message } from 'antd';
+import { Typography, Button, App } from 'antd';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { useDebts } from '@/hooks/useDebts';
 import { DebtCard } from '@/components/debts/DebtCard';
@@ -7,6 +7,7 @@ import { DebtForm } from '@/components/debts/DebtForm';
 import type { PersonDebt } from '@/types';
 
 export function DebtsPage() {
+  const { message } = App.useApp();
   const { debts, loading, create, update, remove, recordPayment } = useDebts();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<PersonDebt | undefined>();

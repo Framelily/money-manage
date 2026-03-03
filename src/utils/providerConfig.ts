@@ -43,7 +43,6 @@ const HEX_TO_ANTD_PRESET: Record<string, string> = {
   '#60a5fa': 'blue',
   '#f97316': 'orange',
   '#fb923c': 'orange',
-  '#3b82f6': 'blue',
   '#06b6d4': 'cyan',
   '#22c55e': 'green',
   '#ec4899': 'magenta',

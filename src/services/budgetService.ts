@@ -33,7 +33,7 @@ export const budgetService = {
   async getAll(year?: number): Promise<BudgetItem[]> {
     const params = year ? { year } : {};
     const { data } = await api.get<ApiBudgetItem[]>('/budget', { params });
-    return data.map(transformBudgetItem);
+    return Array.isArray(data) ? data.map(transformBudgetItem) : [];
   },
 
   async getById(id: string, year?: number): Promise<BudgetItem | undefined> {

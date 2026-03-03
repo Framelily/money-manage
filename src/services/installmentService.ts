@@ -4,7 +4,7 @@ import api from './api';
 export const installmentService = {
   async getAll(): Promise<InstallmentPlan[]> {
     const { data } = await api.get('/installments');
-    return data;
+    return Array.isArray(data) ? data : [];
   },
 
   async getByProvider(provider: CardProvider): Promise<InstallmentPlan[]> {

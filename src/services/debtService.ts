@@ -4,7 +4,7 @@ import api from './api';
 export const debtService = {
   async getAll(): Promise<PersonDebt[]> {
     const { data } = await api.get('/debts');
-    return data;
+    return Array.isArray(data) ? data : [];
   },
 
   async getById(id: string): Promise<PersonDebt | undefined> {

@@ -73,7 +73,9 @@ export function InstallmentForm({ open, onCancel, onSubmit, initialValues, exist
         form.setFieldsValue(initialValues);
         setColorValue(initialValues.providerColor ?? getProviderChartColor(initialValues.provider));
         setDrafts(
-          initialValues.installments.map(({ id: _, ...rest }) => rest),
+          initialValues.installments
+            .map(({ id: _, ...rest }) => rest)
+            .sort((a, b) => a.installmentNumber - b.installmentNumber),
         );
       } else {
         form.resetFields();

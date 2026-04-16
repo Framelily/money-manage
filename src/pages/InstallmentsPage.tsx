@@ -28,8 +28,7 @@ export function InstallmentsPage() {
 
   const handleSubmit = async (values: InstallmentFormResult) => {
     if (editing) {
-      const { installments: _, ...planValues } = values;
-      await update(editing.id, planValues);
+      await update(editing.id, values);
       message.success('แก้ไขสำเร็จ');
     } else {
       await create(values);

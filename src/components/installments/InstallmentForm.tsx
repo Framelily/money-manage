@@ -69,13 +69,16 @@ export function InstallmentForm({ open, onCancel, onSubmit, initialValues, exist
 
   useEffect(() => {
     if (open) {
-      setDrafts([]);
       if (initialValues) {
         form.setFieldsValue(initialValues);
         setColorValue(initialValues.providerColor ?? getProviderChartColor(initialValues.provider));
+        setDrafts(
+          initialValues.installments.map(({ id: _, ...rest }) => rest),
+        );
       } else {
         form.resetFields();
         setColorValue('#1677ff');
+        setDrafts([]);
       }
     }
   }, [open, initialValues, form]);
@@ -116,7 +119,7 @@ export function InstallmentForm({ open, onCancel, onSubmit, initialValues, exist
     planValues.providerColor = colorValue;
 
     const result: InstallmentFormResult = { ...planValues };
-    if (!initialValues && drafts.length > 0) {
+    if (drafts.length > 0) {
       result.installments = drafts;
     }
     onSubmit(result);
@@ -132,7 +135,8 @@ export function InstallmentForm({ open, onCancel, onSubmit, initialValues, exist
       cancelText="ยกเลิก"
       destroyOnHidden
       width="100%"
-      style={{ maxWidth: 600 }}
+      style={{ maxWidth: 600, top: 20 }}
+      styles={{ body: { maxHeight: 'calc(100vh - 160px)', overflowY: 'auto' } }}
     >
       <Form form={form} layout="vertical" initialValues={{ isClosed: false, startMonth: 0, startYear: CURRENT_YEAR_BE }}>
         <Form.Item name="provider" label="ผู้ให้บริการ" rules={[{ required: true, message: 'กรุณาเลือกหรือพิมพ์ชื่อผู้ให้บริการ' }]}>
@@ -202,7 +206,7 @@ export function InstallmentForm({ open, onCancel, onSubmit, initialValues, exist
       </Form>
 
       {drafts.length > 0 && (
-        <div style={{ maxHeight: 300, overflowY: 'auto' }}>
+        <div>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #f0f0f0' }}>

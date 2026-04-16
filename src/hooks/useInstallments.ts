@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { InstallmentPlan, CardProvider } from '@/types';
+import type { InstallmentPlan, Installment, CardProvider } from '@/types';
 import { installmentService } from '@/services/installmentService';
 
 export function useInstallments() {
@@ -29,7 +29,10 @@ export function useInstallments() {
   );
 
   const update = useCallback(
-    async (id: string, data: Partial<InstallmentPlan>) => {
+    async (
+      id: string,
+      data: Partial<Omit<InstallmentPlan, 'installments'>> & { installments?: Omit<Installment, 'id'>[] },
+    ) => {
       await installmentService.update(id, data);
       await refresh();
     },

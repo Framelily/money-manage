@@ -22,7 +22,10 @@ export const installmentService = {
     return created;
   },
 
-  async update(id: string, data: Partial<InstallmentPlan>): Promise<InstallmentPlan> {
+  async update(
+    id: string,
+    data: Partial<Omit<InstallmentPlan, 'installments'>> & { installments?: Omit<Installment, 'id'>[] },
+  ): Promise<InstallmentPlan> {
     const { data: updated } = await api.put(`/installments/${id}`, data);
     return updated;
   },

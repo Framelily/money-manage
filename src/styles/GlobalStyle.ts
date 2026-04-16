@@ -25,6 +25,20 @@ export const GlobalStyle = createGlobalStyle`
     font-family: 'Inter', 'Noto Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif;
   }
 
+  /* Prevent iOS auto-zoom on input focus (needs font-size >= 16px) */
+  @media (max-width: 640px) {
+    input,
+    textarea,
+    select,
+    .ant-input,
+    .ant-input-number-input,
+    .ant-select-selection-search-input,
+    .ant-select-selection-item,
+    .ant-picker-input > input {
+      font-size: 16px !important;
+    }
+  }
+
   /* Mobile: full-width modals */
   @media (max-width: 640px) {
     .ant-modal {

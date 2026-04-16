@@ -144,7 +144,7 @@ export function DailyPage() {
           transition: 'background-color .25s',
         }}
       >
-        <div className="flex items-center justify-between">
+        <div className="grid grid-cols-3 items-center">
           <button
             onClick={() => navigate('/choose')}
             style={{
@@ -156,6 +156,7 @@ export function DailyPage() {
               display: 'flex',
               alignItems: 'center',
               cursor: 'pointer',
+              justifySelf: 'start',
             }}
           >
             <ArrowLeftIcon className="w-5 h-5" />
@@ -164,7 +165,7 @@ export function DailyPage() {
             <div style={{ fontSize: 13, opacity: 0.85 }}>บันทึกประจำวัน</div>
             <div style={{ fontSize: 15, fontWeight: 600 }}>วันนี้ · {todayTotals.count} รายการ</div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 justify-self-end">
             <button
               onClick={() => navigate('/daily/report')}
               style={{

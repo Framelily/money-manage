@@ -6,6 +6,7 @@ import {
   WalletIcon,
   UserGroupIcon,
   CalculatorIcon,
+  PencilSquareIcon,
 } from '@heroicons/react/24/outline';
 
 interface Props {
@@ -18,6 +19,7 @@ const menuItems = [
   { key: '/budget', icon: <WalletIcon className="w-[18px] h-[18px]" />, label: 'งบรายเดือน' },
   { key: '/debts', icon: <UserGroupIcon className="w-[18px] h-[18px]" />, label: 'คนที่เป็นหนี้เรา' },
   { key: '/payoff', icon: <CalculatorIcon className="w-[18px] h-[18px]" />, label: 'วิเคราะห์ปิดหนี้' },
+  { key: '/daily', icon: <PencilSquareIcon className="w-[18px] h-[18px]" />, label: 'บันทึกประจำวัน' },
 ];
 
 export function Sidebar({ onNavigate }: Props) {

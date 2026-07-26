@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { BudgetItem, MonthBE, Baht } from '@/types';
-import { budgetService } from '@/services/budgetService';
+import { budgetService, type BudgetItemDraft } from '@/services/budgetService';
 
 const CURRENT_YEAR_BE = new Date().getFullYear() + 543;
 
@@ -11,15 +11,18 @@ export function useBudget() {
 
   const refresh = useCallback(async () => {
     setLoading(true);
-    const data = await budgetService.getAll(year);
-    setItems(data);
-    setLoading(false);
+    try {
+      const data = await budgetService.getAll(year);
+      setItems(data);
+    } finally {
+      setLoading(false);
+    }
   }, [year]);
 
   useEffect(() => { refresh(); }, [refresh]);
 
   const create = useCallback(
-    async (data: Omit<BudgetItem, 'id'>) => {
+    async (data: BudgetItemDraft) => {
       await budgetService.create(data, year);
       await refresh();
     },
@@ -42,6 +45,14 @@ export function useBudget() {
     [refresh, year]
   );
 
+  const setMonthlyPaid = useCallback(
+    async (id: string, month: MonthBE, paid: boolean) => {
+      await budgetService.setMonthlyPaid(id, month, paid, year);
+      await refresh();
+    },
+    [refresh, year]
+  );
+
   const remove = useCallback(
     async (id: string) => {
       await budgetService.delete(id);
@@ -50,5 +61,5 @@ export function useBudget() {
     [refresh]
   );
 
-  return { items, loading, year, setYear, refresh, create, update, updateMonthlyValue, remove };
+  return { items, loading, year, setYear, refresh, create, update, updateMonthlyValue, setMonthlyPaid, remove };
 }

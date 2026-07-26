@@ -38,4 +38,9 @@ export const installmentService = {
     const { data } = await api.patch(`/installments/${planId}/toggle/${installmentId}`);
     return data;
   },
+
+  async setProviderPaid(provider: CardProvider, month: number, year: number, paid: boolean): Promise<InstallmentPlan[]> {
+    const { data } = await api.patch('/installments/paid', { provider, month, year, paid });
+    return Array.isArray(data) ? data : [];
+  },
 };

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Table, InputNumber, Button, Popconfirm } from 'antd';
+import { Table, InputNumber, Button, Popconfirm, Checkbox } from 'antd';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
-import type { BudgetItem, MonthBE, Baht, BudgetCategory } from '@/types';
+import type { BudgetItem, MonthBE, Baht, BudgetCategory, MonthPaid } from '@/types';
 import { formatNumber } from '@/utils/format';
 
 interface Props {
@@ -11,6 +11,7 @@ interface Props {
   onEdit: (item: BudgetItem) => void;
   onDelete: (id: string) => void;
   onCellChange: (id: string, month: MonthBE, value: Baht) => void;
+  onPaidChange: (item: BudgetItem, month: MonthBE, paid: boolean) => void;
 }
 
 const CATEGORY_CONFIG: Record<BudgetCategory, { label: string; color: string; tagColor: string }> = {
@@ -28,6 +29,7 @@ interface RowData {
   isRemaining?: boolean;
   isReadOnly?: boolean;
   values: Record<MonthBE, number>;
+  paid: Record<MonthBE, MonthPaid>;
   original?: BudgetItem;
 }
 
@@ -62,7 +64,7 @@ function useIsMobile() {
   return isMobile;
 }
 
-export function BudgetTable({ items, months, loading, onEdit, onDelete, onCellChange }: Props) {
+export function BudgetTable({ items, months, loading, onEdit, onDelete, onCellChange, onPaidChange }: Props) {
   const isMobile = useIsMobile();
   const categories: BudgetCategory[] = ['income', 'fixedExpense', 'variableExpense'];
 
@@ -78,6 +80,7 @@ export function BudgetTable({ items, months, loading, onEdit, onDelete, onCellCh
         category: cat,
         isReadOnly: item.id.startsWith('installment-'),
         values: item.monthlyValues,
+        paid: item.monthlyPaid,
         original: item,
       });
     });
@@ -86,6 +89,13 @@ export function BudgetTable({ items, months, loading, onEdit, onDelete, onCellCh
     months.forEach((m) => {
       summary[m] = catItems.reduce((s, i) => s + (i.monthlyValues[m] || 0), 0);
     });
+    const summaryPaid = {} as Record<MonthBE, MonthPaid>;
+    months.forEach((m) => {
+      summaryPaid[m] = {
+        state: 'none',
+        amount: catItems.reduce((s, i) => s + (i.monthlyPaid[m]?.amount || 0), 0),
+      };
+    });
     rows.push({
       key: `summary-${cat}`,
       id: `summary-${cat}`,
@@ -93,6 +103,7 @@ export function BudgetTable({ items, months, loading, onEdit, onDelete, onCellCh
       category: cat,
       isSummary: true,
       values: summary,
+      paid: summaryPaid,
     });
   });
 
@@ -104,6 +115,16 @@ export function BudgetTable({ items, months, loading, onEdit, onDelete, onCellCh
     const vari = items.filter((i) => i.category === 'variableExpense').reduce((s, i) => s + (i.monthlyValues[m] || 0), 0);
     remaining[m] = inc - fix - vari;
   });
+  const remainingPaid = {} as Record<MonthBE, MonthPaid>;
+  months.forEach((m) => {
+    const paidOf = (cat: BudgetCategory) => items
+      .filter((i) => i.category === cat)
+      .reduce((s, i) => s + (i.monthlyPaid[m]?.amount || 0), 0);
+    remainingPaid[m] = {
+      state: 'none',
+      amount: paidOf('income') - paidOf('fixedExpense') - paidOf('variableExpense'),
+    };
+  });
   rows.push({
     key: 'remaining',
     id: 'remaining',
@@ -111,10 +132,11 @@ export function BudgetTable({ items, months, loading, onEdit, onDelete, onCellCh
     category: 'income',
     isRemaining: true,
     values: remaining,
+    paid: remainingPaid,
   });
 
   const nameColWidth = isMobile ? 130 : 200;
-  const monthColWidth = isMobile ? 100 : 120;
+  const monthColWidth = isMobile ? 124 : 144;
   const actionsColWidth = isMobile ? 64 : 80;
   const scrollX = nameColWidth + months.length * monthColWidth + actionsColWidth;
 
@@ -147,16 +169,44 @@ export function BudgetTable({ items, months, loading, onEdit, onDelete, onCellCh
       render: (_: unknown, record: RowData) => {
         const val = record.values[month] || 0;
         if (record.isSummary) {
-          return <strong style={{ color: CATEGORY_CONFIG[record.category].color }}>{formatNumber(val)}</strong>;
+          return (
+            <span style={{ color: CATEGORY_CONFIG[record.category].color }}>
+              <strong>{formatNumber(record.paid[month]?.amount || 0)}</strong>
+              <span style={{ opacity: 0.6 }}> / {formatNumber(val)}</span>
+            </span>
+          );
         }
         if (record.isRemaining) {
-          return <strong style={{ color: val >= 0 ? '#10b981' : '#ef4444' }}>{formatNumber(val)}</strong>;
+          const actual = record.paid[month]?.amount || 0;
+          return (
+            <span>
+              <strong style={{ color: actual >= 0 ? '#10b981' : '#ef4444' }}>{formatNumber(actual)}</strong>
+              <span style={{ opacity: 0.6 }}> / {formatNumber(val)}</span>
+            </span>
+          );
         }
+        const paid = record.paid[month] ?? { state: 'none' as const, amount: 0 };
+        const checkbox = (
+          <Checkbox
+            checked={paid.state === 'all'}
+            indeterminate={paid.state === 'partial'}
+            onChange={(e) => onPaidChange(record.original!, month, e.target.checked)}
+          />
+        );
+
         if (record.isReadOnly) {
-          return <span style={{ color: '#999' }}>{formatNumber(val)}</span>;
+          return (
+            <div className="flex items-center gap-1">
+              {val > 0 ? checkbox : <span style={{ width: 16, flexShrink: 0 }} />}
+              <span style={{ color: '#999' }}>{formatNumber(val)}</span>
+            </div>
+          );
         }
         return (
-          <EditableCell value={val} onChange={(newVal) => onCellChange(record.id, month, newVal)} />
+          <div className="flex items-center gap-1">
+            {checkbox}
+            <EditableCell value={val} onChange={(newVal) => onCellChange(record.id, month, newVal)} />
+          </div>
         );
       },
     })),
@@ -189,8 +239,8 @@ export function BudgetTable({ items, months, loading, onEdit, onDelete, onCellCh
       size="small"
       bordered
       rowClassName={(record) => {
-        if (record.isRemaining) return 'bg-gray-800 text-white';
-        if (record.isSummary) return 'bg-gray-50 font-semibold';
+        if (record.isRemaining) return 'budget-row-remaining';
+        if (record.isSummary) return 'budget-row-summary';
         return '';
       }}
     />

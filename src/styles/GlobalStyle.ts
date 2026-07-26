@@ -66,6 +66,27 @@ export const GlobalStyle = createGlobalStyle`
     }
   }
 
+  /* Budget table summary rows.
+     These own their colours at the cell level, not the row level: antd paints
+     row-hover and fixed-column backgrounds onto the td, which would otherwise
+     cover a background set on the tr and leave white text on white. The
+     selectors are deliberately as specific as antd's own so they win without
+     !important. */
+  .ant-table-wrapper .ant-table-tbody > tr.budget-row-remaining > td {
+    background: #1f2937;
+    color: #fff;
+  }
+  .ant-table-wrapper .ant-table-tbody > tr.budget-row-remaining:hover > td {
+    background: #374151;
+  }
+  .ant-table-wrapper .ant-table-tbody > tr.budget-row-summary > td {
+    background: #f9fafb;
+    font-weight: 600;
+  }
+  .ant-table-wrapper .ant-table-tbody > tr.budget-row-summary:hover > td {
+    background: #f3f4f6;
+  }
+
   /* Touch-friendly table rows */
   .ant-table-tbody > tr > td {
     padding: 8px 12px;

@@ -480,6 +480,47 @@ docker compose --profile tools config --services
 
 Expected: all four, including `migrate`.
 
+- [ ] **Step 5b: Repoint the `api` service at the `.env` values — do NOT defer this to Task 4**
+
+This step was originally part of Task 4, which runs *after* the cutover. That ordering took production down for 38 seconds on 2026-07-26 and it will do so again if restored.
+
+The `api` service hard-codes its database target:
+
+```yaml
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_USER: root
+      DB_PASSWORD: ${DB_PASSWORD:-money123}
+      DB_NAME: ${DB_NAME:-money_manage}
+```
+
+So switching `.env` to Supabase changes nothing for the API. Task 3 deploys a binary built with the Postgres driver, Compose still aims it at the MySQL container, and it crash-loops on `tls error: server refused TLS connection` — the driver asking for TLS from a MySQL server that has no idea what it is being asked. `.env` looks correct throughout, which makes it a slow thing to diagnose under pressure.
+
+Replace the block with:
+
+```yaml
+      # Every DB_* value comes from .env — no defaults. A missing variable must
+      # fail loudly rather than silently fall back to the retired local MySQL.
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_SSLMODE: ${DB_SSLMODE}
+```
+
+Dropping the `:-` defaults is deliberate. A default that points at the database being retired turns a missing variable into a confusing runtime failure instead of an obvious startup one.
+
+Leave the `db` service and `depends_on` in place — they are the rollback path until Task 4.
+
+Verify before committing:
+
+```bash
+docker compose config | sed -n '/^  api:/,/^  [a-z]/p' | grep DB_
+```
+
+Expected: the resolved Supabase host and port 5432, not `db` and `3306`.
+
 - [ ] **Step 6: Commit**
 
 ```bash
@@ -764,7 +805,7 @@ Expected: only `gorm.io/driver/postgres` remains. `go mod tidy` also drops `gith
 
 Remove, in full: the `db` service, the top-level `mysql_data` volume, the `depends_on` block under `api`, and the `migrate` service from Task 2.
 
-The `api` service keeps its `DB_*` environment — those now point at Supabase. `tunnel` is unchanged except that its `depends_on: [api]` stays valid.
+The `api` service keeps its `DB_*` environment untouched — Task 2 Step 5b already repointed it at `.env`, which is what makes it safe to delete `db` here. `tunnel` is unchanged except that its `depends_on: [api]` stays valid.
 
 Dropping the health gate is a small win in itself: the deploy no longer waits for a MySQL container to report healthy before starting the API.
 

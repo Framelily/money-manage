@@ -130,10 +130,19 @@ Expected: removes `.github/workflows/deploy.yml`. This is the workflow that exis
 
 - [ ] **Step 5: Clear the stale build artifacts left at the root**
 
-`node_modules/` and `dist/` at the root are now orphaned — `package.json` moved to `apps/web`. Both are gitignored, so git does not track the removal:
+Two untracked things need attention. The local `.env` must follow the frontend: Vite reads `.env` from the directory it runs in, so left at the root it would silently stop supplying `VITE_API_BASE_URL`. It is gitignored, so `git mv` cannot move it.
+
+`node_modules/` and `dist/` at the root are now orphaned — `package.json` moved to `apps/web`. Both are gitignored too, so git does not track their removal:
 
 ```bash
+[ -f .env ] && mv .env apps/web/.env
 rm -rf node_modules dist tsconfig.tsbuildinfo
+```
+
+The API's untracked `.env` needs the same treatment in Task 2, but **copy** rather than move it, so `money-manage-api` stays runnable as a fallback until Phase 2 is done:
+
+```bash
+cp ../money-manage-api/.env apps/api/.env
 ```
 
 - [ ] **Step 6: Verify the frontend still builds from its new location**
@@ -190,13 +199,17 @@ Expected: a version number. If `command not found`, stop and ask the user to run
 
 Shell variables do not persist between steps, so each step below repeats the full path rather than relying on `$SCRATCH` being set earlier.
 
+`--no-local` is required. Cloning a local path hardlinks the object store instead of packing it, and `filter-repo` refuses to run on a repo that does not look freshly packed:
+
+> Aborting: Refusing to destructively overwrite repo history since this does not look like a fresh clone. (expected freshly packed repo)
+
 ```bash
 rm -rf /private/tmp/claude-501/-Users-ittaframe-Git-Me-money-manage-all/ba1c8239-f936-49e6-9d19-2272c9b1ac85/scratchpad/api-rewrite
-git clone /Users/ittaframe/Git-Me/money-manage-all/money-manage-api \
+git clone --no-local /Users/ittaframe/Git-Me/money-manage-all/money-manage-api \
   /private/tmp/claude-501/-Users-ittaframe-Git-Me-money-manage-all/ba1c8239-f936-49e6-9d19-2272c9b1ac85/scratchpad/api-rewrite
 ```
 
-Expected: clone succeeds and reports the same commit count as the source.
+Expected: clone succeeds and reports the same commit count as the source (24 at the time of writing).
 
 - [ ] **Step 3: Rewrite every path in the clone's history under `apps/api/`**
 
@@ -323,13 +336,19 @@ Three deliberate changes from a naive concatenation:
 
 - [ ] **Step 2: Untrack the committed Python bytecode**
 
-Three `.pyc` files from the `ui-ux-pro-max` skill are tracked. They are build artifacts of `scripts/*.py` and should never have been committed:
+Three `.pyc` files from the `ui-ux-pro-max` skill are tracked. They are build artifacts of `scripts/*.py` and should never have been committed. Note the path is at the **root** — `.claude/` does not move in Task 1:
 
 ```bash
-git rm --cached -r apps/web/.claude/skills/ui-ux-pro-max/scripts/__pycache__
+git rm --cached -r .claude/skills/ui-ux-pro-max/scripts/__pycache__
 ```
 
 Expected: 3 files removed from the index. They remain on disk and are now ignored.
+
+Also remove `apps/api/.gitignore`, which the import brought along. Every pattern in it is now covered by the root file, and leaving a second ignore file contradicts the single-file design:
+
+```bash
+git rm apps/api/.gitignore
+```
 
 - [ ] **Step 3: Verify the ignore rules behave as intended**
 
@@ -622,7 +641,19 @@ docker compose up -d db api
 docker compose ps
 ```
 
-Expected: both `db` and `api` report running, `db` healthy. If Docker is not available on this machine, skip to Step 5 and record that Steps 2–4 were not run — `docker compose config` and `docker compose build api` from Task 4 remain the evidence, and the deploy on the runner is then the first real execution.
+Expected: both `db` and `api` report running, `db` healthy.
+
+**If `db` fails with `Bind for 0.0.0.0:3306 failed: port is already allocated`,** something unrelated already holds the port on this machine — check with `lsof -nP -iTCP:3306 -sTCP:LISTEN` and `docker ps`. Do not stop it, and do not edit the committed Compose file. The published port is only for host access; `api` reaches `db` over the Compose network via `DB_HOST: db`, so drop the binding with a throwaway override kept outside the repo:
+
+```bash
+SCR=/private/tmp/claude-501/-Users-ittaframe-Git-Me-money-manage-all/ba1c8239-f936-49e6-9d19-2272c9b1ac85/scratchpad
+printf 'services:\n  db:\n    ports: !reset []\n' > "$SCR/no-db-port.yml"
+docker compose -f docker-compose.yml -f "$SCR/no-db-port.yml" up -d db api
+```
+
+`!reset` needs Compose 2.24+. Remapping to a spare host port does **not** work here: Compose appends `ports` lists across files rather than replacing them, so the conflicting binding would survive. Delete the override file in Step 5.
+
+If Docker is not available on this machine at all, skip to Step 5 and record that Steps 2–4 were not run — `docker compose config` and `docker compose build api` from Task 4 remain the evidence, and the deploy on the runner is then the first real execution.
 
 - [ ] **Step 3: Verify the API serves the SPA from the mounted build**
 

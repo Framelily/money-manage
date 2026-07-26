@@ -29,10 +29,13 @@ between visits.
 | Selected year | Columns shown |
 |---|---|
 | Past year (e.g. 2568) | all 12 |
-| Current year (2569) | current month through ธ.ค. |
+| Current year (2569) | previous month through ธ.ค. |
 | Future year (e.g. 2570) | all 12 |
 
-The current month is always visible — it is not treated as past.
+The current month is always visible, and so is the one before it — the month
+just gone is still the one being reconciled. In January there is no earlier
+month to show, so the start index clamps to ม.ค. rather than wrapping to ธ.ค.
+In December two columns remain, พ.ย. and ธ.ค.
 
 The toggle "แสดงเดือนที่ผ่านมา" restores all 12 columns. It is unchecked by
 default and rendered only when the current year is selected, since it has no

@@ -1,20 +1,4 @@
 services:
-  db:
-    image: mysql:8.0
-    restart: unless-stopped
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-money123}
-      MYSQL_DATABASE: ${DB_NAME:-money_manage}
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
   api:
     build: ./apps/api
     restart: unless-stopped
@@ -35,26 +19,6 @@ services:
       STATIC_DIR: ./dist
     volumes:
       - ./apps/web/dist:/app/dist:ro
-    depends_on:
-      db:
-        condition: service_healthy
-
-  # One-shot MySQL -> Postgres data copy. Behind a profile so it never starts
-  # with `docker compose up`; run it with:
-  #   docker compose --profile tools run --rm migrate
-  # It needs the db service present so the MySQL host in MYSQL_DSN resolves.
-  migrate:
-    build: ./apps/api
-    profiles: ["tools"]
-    command: ["./server", "migrate"]
-    environment:
-      MYSQL_DSN: ${MYSQL_DSN}
-      DB_HOST: ${DB_HOST}
-      DB_PORT: "5432"
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: postgres
-      DB_SSLMODE: require
 
   tunnel:
     image: cloudflare/cloudflared:latest
@@ -64,6 +28,3 @@ services:
       TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
     depends_on:
       - api
-
-volumes:
-  mysql_data:

@@ -9,10 +9,12 @@ Personal finance management REST API built with Go. Manages installment plans, m
 ## Tech Stack
 
 - **Go 1.25** with Gin web framework
-- **MySQL 8.0** via GORM (auto-migration on startup)
+- **Supabase Postgres 17** via GORM (auto-migration on startup), reached through
+  the Supavisor session pooler on port 5432. Not the direct connection (IPv6
+  only) and not the transaction pooler on 6543 (no prepared statements)
 - **JWT** (72h expiry) for auth, bcrypt for passwords
-- **Docker Compose** for deployment (API + MySQL + Cloudflare Tunnel) — the
-  Compose file lives at the repo root, not in this directory
+- **Docker Compose** for deployment (API + Cloudflare Tunnel) — the Compose file
+  lives at the repo root, not in this directory
 
 ## Build & Run
 
@@ -33,7 +35,9 @@ No tests exist in the codebase currently.
 ## Environment Variables
 
 Configured via `.env` file (loaded by godotenv) or environment:
-- `PORT` (default: 8080), `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`
+- `PORT` (default: 8080), `DB_HOST`, `DB_PORT` (5432), `DB_USER`, `DB_PASSWORD`,
+  `DB_NAME` (`postgres`), `DB_SSLMODE` (`require`)
+- `DB_USER` takes the form `postgres.<project-ref>`, not plain `postgres`
 - `JWT_SECRET` - signing key for JWT tokens
 - `STATIC_DIR` - path to frontend build for SPA serving (default: `./dist`)
 - `GIN_MODE` - set to `release` in production
@@ -46,7 +50,7 @@ All code is in `package main` with a flat file structure:
 |------|---------|
 | `main.go` | Server bootstrap, CORS config, SPA static file serving |
 | `config.go` | Environment variable loading into `AppConfig` global |
-| `database.go` | MySQL connection + GORM auto-migration, exposes `DB` global |
+| `database.go` | Postgres connection, pool limits + GORM auto-migration, exposes `DB` global |
 | `auth.go` | Register/Login handlers, JWT middleware (`AuthMiddleware()`) |
 | `models.go` | All GORM models (User, InstallmentPlan, Installment, BudgetItem, BudgetMonthlyValue, PersonDebt, DebtPayment) |
 | `routes.go` | Route registration under `/api` prefix |

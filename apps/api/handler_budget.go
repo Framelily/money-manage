@@ -185,6 +185,49 @@ func UpdateBudgetMonthlyValue(c *gin.Context) {
 	c.JSON(http.StatusOK, item)
 }
 
+type UpdateMonthlyPaidInput struct {
+	Month string `json:"month" binding:"required"`
+	Year  int    `json:"year"`
+	Paid  bool   `json:"paid"`
+}
+
+func UpdateBudgetMonthlyPaid(c *gin.Context) {
+	userID := c.GetString("user_id")
+	id := c.Param("id")
+
+	var item BudgetItem
+	if err := DB.Where("id = ? AND user_id = ?", id, userID).First(&item).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Budget item not found"})
+		return
+	}
+
+	var input UpdateMonthlyPaidInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	result := DB.Model(&BudgetMonthlyValue{}).
+		Where("budget_item_id = ? AND month = ? AND year = ?", id, input.Month, input.Year).
+		Update("paid", input.Paid)
+
+	if result.RowsAffected == 0 {
+		mv := BudgetMonthlyValue{
+			ID:           uuid.New().String(),
+			BudgetItemID: id,
+			Month:        input.Month,
+			Year:         input.Year,
+			Value:        0,
+			Paid:         input.Paid,
+		}
+		DB.Create(&mv)
+	}
+
+	query := preloadMonthlyValues(DB.Where("id = ?", id), input.Year)
+	query.First(&item)
+	c.JSON(http.StatusOK, item)
+}
+
 func DeleteBudgetItem(c *gin.Context) {
 	userID := c.GetString("user_id")
 	id := c.Param("id")

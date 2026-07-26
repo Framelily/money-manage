@@ -3,6 +3,12 @@ name: Deploy
 on:
   push:
     branches: [main]
+    # Documentation-only pushes do not change what runs in production, so they
+    # should not trigger an npm install, a Vite build and a container rebuild.
+    # Use workflow_dispatch to deploy manually if one is ever needed.
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
   workflow_dispatch:
 
 jobs:

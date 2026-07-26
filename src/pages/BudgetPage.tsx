@@ -60,7 +60,7 @@ export function BudgetPage() {
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <Typography.Title level={4} style={{ margin: 0 }}>งบรายเดือน</Typography.Title>
           <Select
             value={year}

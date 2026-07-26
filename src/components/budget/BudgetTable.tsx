@@ -6,7 +6,7 @@ import { formatNumber } from '@/utils/format';
 
 interface Props {
   items: BudgetItem[];
-  months: MonthBE[];
+  months: readonly MonthBE[];
   loading: boolean;
   onEdit: (item: BudgetItem) => void;
   onDelete: (id: string) => void;

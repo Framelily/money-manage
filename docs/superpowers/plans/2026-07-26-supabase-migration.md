@@ -4,7 +4,7 @@
 
 The cutover cost 38 seconds of downtime because repointing the `api` service at `.env` was scheduled in Task 4, after the deploy. That step is now Task 2 Step 5b. See it before re-running any part of this plan.
 
-Tasks 4 and 5 (remove the MySQL container, volume, `migrate.go` and the MySQL driver) are deliberately **not** done. The MySQL volume is the rollback path and should stay until the new setup has run for a few days.
+Tasks 4 and 5 are also done (`b71c14b`). The one deliberate exception: the `money-manage-api-db-1` container is stopped rather than removed and the `money-manage-api_mysql_data` volume still holds the pre-migration data, as the rollback path. `COMPOSE_PROJECT_NAME` stays in the runner's `.env` — dropping it would rename the Compose project and needlessly recreate `api` and `tunnel`.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 

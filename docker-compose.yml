@@ -22,11 +22,14 @@ services:
       - "8080:8080"
     environment:
       PORT: "8080"
-      DB_HOST: db
-      DB_PORT: "3306"
-      DB_USER: root
-      DB_PASSWORD: ${DB_PASSWORD:-money123}
-      DB_NAME: ${DB_NAME:-money_manage}
+      # Every DB_* value comes from .env — no defaults. A missing variable must
+      # fail loudly rather than silently fall back to the retired local MySQL.
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_SSLMODE: ${DB_SSLMODE}
       JWT_SECRET: ${JWT_SECRET:-change_me_in_production}
       GIN_MODE: release
       STATIC_DIR: ./dist

@@ -261,7 +261,7 @@ func SetProviderInstallmentsPaid(c *gin.Context) {
 
 	var planIDs []string
 	if err := DB.Model(&InstallmentPlan{}).
-		Where("user_id = ? AND provider = ?", userID, input.Provider).
+		Where("user_id = ? AND provider = ? AND is_closed = ?", userID, input.Provider, false).
 		Pluck("id", &planIDs).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

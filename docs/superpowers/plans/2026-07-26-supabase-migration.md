@@ -1,5 +1,7 @@
 # Supabase Postgres Migration Implementation Plan (Phase 2 of 2)
 
+**Status (2026-07-26): Tasks 1, 2 and 2b done on branch `feat/supabase`, not pushed.** The code is written and the whole path is verified against a throwaway local Postgres 17. Tasks 3–5 are blocked on two things only the repo owner can do: Phase 1 reaching production, and a Supabase project existing. Task 3 is then a credential change, not a first attempt.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Move the database from the self-hosted MySQL container to Supabase Postgres, carrying all existing data across, with the Go API otherwise unchanged.

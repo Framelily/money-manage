@@ -285,10 +285,13 @@ func SetProviderInstallmentsPaid(c *gin.Context) {
 	}
 
 	var plans []InstallmentPlan
-	DB.Where("user_id = ? AND provider = ?", userID, input.Provider).
+	if err := DB.Where("user_id = ? AND provider = ?", userID, input.Provider).
 		Preload("Installments", func(db *gorm.DB) *gorm.DB {
 			return db.Order("installment_number ASC")
-		}).Find(&plans)
+		}).Find(&plans).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
 	c.JSON(http.StatusOK, plans)
 }

@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in `apps/api`. See the repo root `CLAUDE.md` for monorepo-wide conventions.
 
 ## Project Overview
 
@@ -11,7 +11,8 @@ Personal finance management REST API built with Go. Manages installment plans, m
 - **Go 1.25** with Gin web framework
 - **MySQL 8.0** via GORM (auto-migration on startup)
 - **JWT** (72h expiry) for auth, bcrypt for passwords
-- **Docker Compose** for deployment (API + MySQL + Cloudflare Tunnel)
+- **Docker Compose** for deployment (API + MySQL + Cloudflare Tunnel) — the
+  Compose file lives at the repo root, not in this directory
 
 ## Build & Run
 
@@ -73,4 +74,8 @@ All protected routes require `Authorization: Bearer <token>` header.
 
 ## Deployment
 
-Self-hosted runner deploys on push to `main` via GitHub Actions. The workflow pulls both this repo and the frontend (`money-manage`), builds the frontend, copies `dist/` here, then runs `docker compose up -d --build`. Exposed via Cloudflare Tunnel.
+Part of the `money-manage` monorepo. A single workflow at the repo root
+(`.github/workflows/deploy.yml`) runs on push to `main` against a self-hosted
+runner: pull, build `apps/web`, then `docker compose up -d --build` from the
+root. Compose mounts `apps/web/dist` into this container, which serves it as
+the SPA. Exposed via Cloudflare Tunnel.

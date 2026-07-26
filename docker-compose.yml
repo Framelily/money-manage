@@ -16,7 +16,7 @@ services:
       retries: 10
 
   api:
-    build: .
+    build: ./apps/api
     restart: unless-stopped
     ports:
       - "8080:8080"
@@ -31,7 +31,7 @@ services:
       GIN_MODE: release
       STATIC_DIR: ./dist
     volumes:
-      - ./dist:/app/dist:ro
+      - ./apps/web/dist:/app/dist:ro
     depends_on:
       db:
         condition: service_healthy

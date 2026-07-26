@@ -1,0 +1,33 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    env:
+      APP_DIR: /home/it23-server/money-manage
+    steps:
+      # git clean -fd is safe at the repo root: it skips ignored files without
+      # -x, and .env is ignored, so the production env file survives.
+      - name: Pull latest code
+        run: |
+          cd $APP_DIR
+          git checkout -- .
+          git clean -fd
+          git pull origin main
+
+      - name: Build frontend
+        run: |
+          cd $APP_DIR/apps/web
+          npm ci
+          npm run build
+
+      # No copy step: compose mounts apps/web/dist into the API container.
+      - name: Restart services
+        run: |
+          cd $APP_DIR
+          docker compose up -d --build

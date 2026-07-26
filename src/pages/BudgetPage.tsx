@@ -53,12 +53,16 @@ export function BudgetPage() {
         await setMonthlyPaid(item.id, month, paid);
       }
     } catch {
-      if (item.id.startsWith('installment-')) {
-        await refreshPlans(true);
-      } else {
-        await refreshBudget();
-      }
       message.error('บันทึกสถานะจ่ายไม่สำเร็จ');
+      try {
+        if (item.id.startsWith('installment-')) {
+          await refreshPlans(true);
+        } else {
+          await refreshBudget();
+        }
+      } catch {
+        // Feedback already shown; a failed refresh has nothing further to report.
+      }
     }
   };
 

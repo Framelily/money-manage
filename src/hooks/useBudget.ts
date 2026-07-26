@@ -11,9 +11,12 @@ export function useBudget() {
 
   const refresh = useCallback(async () => {
     setLoading(true);
-    const data = await budgetService.getAll(year);
-    setItems(data);
-    setLoading(false);
+    try {
+      const data = await budgetService.getAll(year);
+      setItems(data);
+    } finally {
+      setLoading(false);
+    }
   }, [year]);
 
   useEffect(() => { refresh(); }, [refresh]);

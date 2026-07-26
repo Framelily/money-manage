@@ -712,6 +712,22 @@ Do not push. Summarise for the user:
 ## Post-phase manual steps (user, not the implementer)
 
 - Re-clone at `APP_DIR` on the runner and place `.env` at its root — **before** merging to `main`
+- Add `COMPOSE_PROJECT_NAME=money-manage-api` to that `.env`. Compose names the project after the directory holding the compose file, so moving it to the repo root switches the project from `money-manage-api` to `money-manage` and creates a fresh, empty `money-manage_mysql_data` volume. The real data stays behind in `money-manage-api_mysql_data` and the app looks wiped. Verify before deploying by running `docker compose ps` from the new root with any compose file present: it must list the *existing* running containers, and `docker compose config` must resolve the volume to `money-manage-api_mysql_data`
+- **Re-register the self-hosted runner against `money-manage`.** A runner belongs to a repository, not to a workflow file. This one was registered to `money-manage-api` (`actions.runner.Framelily-money-manage-api.<hostname>.service`), so the first push to `main` queued a job with nothing to pick it up — the run sat in `queued` rather than failing, which looks like a stalled runner instead of a missing one. Confirm with `gh api repos/Framelily/money-manage/actions/runners`, which returns an empty list until this is done:
+
+  ```bash
+  # on the Mac — tokens last about an hour
+  gh api -X POST repos/Framelily/money-manage-api/actions/runners/remove-token --jq .token
+  gh api -X POST repos/Framelily/money-manage/actions/runners/registration-token --jq .token
+
+  # on the runner, as the runner's user (config.sh refuses to run as root)
+  cd ~/actions-runner
+  sudo ./svc.sh stop && sudo ./svc.sh uninstall
+  ./config.sh remove --token <removal token>
+  ./config.sh --url https://github.com/Framelily/money-manage --token <registration token> \
+    --name <hostname> --labels self-hosted --work _work --unattended --replace
+  sudo ./svc.sh install && sudo ./svc.sh start
+  ```
 - Merge to `main`, watch the deploy, confirm the live app behaves as before
 - Delete the `DEPLOY_TOKEN` secret from repository settings (nothing reads it now)
 - Optionally rename the repo to `money-manage-all` — GitHub redirects the old URL

@@ -217,6 +217,28 @@ The root `.gitignore` merges both files, with one correction: the API's
 `money-manage-api` entry ignores the built binary, but as a slash-free pattern
 it matches at any depth. It becomes `apps/api/money-manage-api`.
 
+### The runner is registered to a repository, not to a workflow file
+
+A self-hosted runner is registered against one repository. This one was
+registered to `money-manage-api`, because that is where the deploy workflow used
+to live — `actions.runner.Framelily-money-manage-api.<hostname>.service`. Moving
+the workflow into `money-manage` does not move the runner with it, so a push to
+`main` queues a job that nothing will ever pick up. The job sits in `queued`
+indefinitely rather than failing, which reads like a stalled runner rather than a
+missing one.
+
+The runner must therefore be re-registered before the first monorepo deploy:
+stop and uninstall the service, `./config.sh remove` with a removal token for the
+old repository, `./config.sh` against `https://github.com/Framelily/money-manage`
+with a registration token for the new one, then reinstall and start the service.
+Tokens come from `gh api -X POST repos/<owner>/<repo>/actions/runners/{remove,registration}-token`
+and last about an hour. The service steps need root, and `config.sh` refuses to
+run as root, so the sequence has to be run by a user with sudo rather than under
+`sudo` wholesale.
+
+Confirm with `gh api repos/Framelily/money-manage/actions/runners`, which returns
+an empty list while the runner still belongs to the old repository.
+
 ### Two failure modes on the runner
 
 `docker compose` reads `.env` from the directory it runs in. With the Compose
@@ -312,6 +334,13 @@ Before phase 1:
 - On the self-hosted runner, re-clone the monorepo at
   `APP_DIR=/home/it23-server/money-manage` as a single directory, and copy
   `.env` to its root
+- Add `COMPOSE_PROJECT_NAME=money-manage-api` to that `.env`. Compose derives the
+  project name from the directory holding the compose file, so moving it to the
+  repo root would switch the project from `money-manage-api` to `money-manage`
+  and create a new, empty `money-manage_mysql_data` volume — orphaning the real
+  data and making the app look wiped
+- Re-register the self-hosted runner against `money-manage` (see "The runner is
+  registered to a repository, not to a workflow file"). Needs sudo on the runner
 - Merge to `main` when ready — pushing `main` deploys production
 
 Before phase 2:

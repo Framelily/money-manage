@@ -70,9 +70,6 @@ export function BudgetTable({ items, months, loading, onEdit, onDelete, onCellCh
 
   const rows: RowData[] = [];
 
-  const emptyPaid = {} as Record<MonthBE, MonthPaid>;
-  months.forEach((m) => { emptyPaid[m] = { state: 'none', amount: 0 }; });
-
   categories.forEach((cat) => {
     const catItems = items.filter((i) => i.category === cat);
     catItems.forEach((item) => {
@@ -92,6 +89,13 @@ export function BudgetTable({ items, months, loading, onEdit, onDelete, onCellCh
     months.forEach((m) => {
       summary[m] = catItems.reduce((s, i) => s + (i.monthlyValues[m] || 0), 0);
     });
+    const summaryPaid = {} as Record<MonthBE, MonthPaid>;
+    months.forEach((m) => {
+      summaryPaid[m] = {
+        state: 'none',
+        amount: catItems.reduce((s, i) => s + (i.monthlyPaid[m]?.amount || 0), 0),
+      };
+    });
     rows.push({
       key: `summary-${cat}`,
       id: `summary-${cat}`,
@@ -99,7 +103,7 @@ export function BudgetTable({ items, months, loading, onEdit, onDelete, onCellCh
       category: cat,
       isSummary: true,
       values: summary,
-      paid: emptyPaid,
+      paid: summaryPaid,
     });
   });
 
@@ -111,6 +115,16 @@ export function BudgetTable({ items, months, loading, onEdit, onDelete, onCellCh
     const vari = items.filter((i) => i.category === 'variableExpense').reduce((s, i) => s + (i.monthlyValues[m] || 0), 0);
     remaining[m] = inc - fix - vari;
   });
+  const remainingPaid = {} as Record<MonthBE, MonthPaid>;
+  months.forEach((m) => {
+    const paidOf = (cat: BudgetCategory) => items
+      .filter((i) => i.category === cat)
+      .reduce((s, i) => s + (i.monthlyPaid[m]?.amount || 0), 0);
+    remainingPaid[m] = {
+      state: 'none',
+      amount: paidOf('income') - paidOf('fixedExpense') - paidOf('variableExpense'),
+    };
+  });
   rows.push({
     key: 'remaining',
     id: 'remaining',
@@ -118,7 +132,7 @@ export function BudgetTable({ items, months, loading, onEdit, onDelete, onCellCh
     category: 'income',
     isRemaining: true,
     values: remaining,
-    paid: emptyPaid,
+    paid: remainingPaid,
   });
 
   const nameColWidth = isMobile ? 130 : 200;
@@ -155,10 +169,21 @@ export function BudgetTable({ items, months, loading, onEdit, onDelete, onCellCh
       render: (_: unknown, record: RowData) => {
         const val = record.values[month] || 0;
         if (record.isSummary) {
-          return <strong style={{ color: CATEGORY_CONFIG[record.category].color }}>{formatNumber(val)}</strong>;
+          return (
+            <span style={{ color: CATEGORY_CONFIG[record.category].color }}>
+              <strong>{formatNumber(record.paid[month]?.amount || 0)}</strong>
+              <span style={{ opacity: 0.6 }}> / {formatNumber(val)}</span>
+            </span>
+          );
         }
         if (record.isRemaining) {
-          return <strong style={{ color: val >= 0 ? '#10b981' : '#ef4444' }}>{formatNumber(val)}</strong>;
+          const actual = record.paid[month]?.amount || 0;
+          return (
+            <span>
+              <strong style={{ color: actual >= 0 ? '#10b981' : '#ef4444' }}>{formatNumber(actual)}</strong>
+              <span style={{ opacity: 0.6 }}> / {formatNumber(val)}</span>
+            </span>
+          );
         }
         const paid = record.paid[month] ?? { state: 'none' as const, amount: 0 };
         const checkbox = (

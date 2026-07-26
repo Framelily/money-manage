@@ -1,6 +1,10 @@
 # Supabase Postgres Migration Implementation Plan (Phase 2 of 2)
 
-**Status (2026-07-26): Tasks 1, 2 and 2b done on branch `feat/supabase`, not pushed.** The code is written and the whole path is verified against a throwaway local Postgres 17. Tasks 3–5 are blocked on two things only the repo owner can do: Phase 1 reaching production, and a Supabase project existing. Task 3 is then a credential change, not a first attempt.
+**Status (2026-07-26): Tasks 1, 2, 2b and 3 complete — production runs on Supabase Postgres (Singapore) and the live app is verified.** All seven tables matched on row counts and column sums; timezone, NULLs, booleans and Thai text confirmed on the real data.
+
+The cutover cost 38 seconds of downtime because repointing the `api` service at `.env` was scheduled in Task 4, after the deploy. That step is now Task 2 Step 5b. See it before re-running any part of this plan.
+
+Tasks 4 and 5 (remove the MySQL container, volume, `migrate.go` and the MySQL driver) are deliberately **not** done. The MySQL volume is the rollback path and should stay until the new setup has run for a few days.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 

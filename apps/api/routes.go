@@ -25,6 +25,7 @@ func SetupRoutes(r *gin.Engine) {
 			installments.PUT("/:id", UpdateInstallment)
 			installments.DELETE("/:id", DeleteInstallment)
 			installments.PATCH("/:planId/toggle/:installmentId", ToggleInstallment)
+			installments.PATCH("/paid", SetProviderInstallmentsPaid)
 		}
 
 		// Budget

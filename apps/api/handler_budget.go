@@ -116,8 +116,9 @@ func UpdateBudgetItem(c *gin.Context) {
 	}
 
 	var input struct {
-		Name     *string `json:"name"`
-		Category *string `json:"category"`
+		Name          *string            `json:"name"`
+		Category      *string            `json:"category"`
+		MonthlyValues map[string]float64 `json:"monthlyValues"`
 	}
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -133,12 +134,52 @@ func UpdateBudgetItem(c *gin.Context) {
 	}
 
 	if len(updates) > 0 {
-		DB.Model(&item).Updates(updates)
+		if err := DB.Model(&item).Updates(updates).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
+	// Only months the caller actually sent are written, and only their amount —
+	// the paid flag belongs to PATCH /:id/paid and must survive an edit here.
+	for _, month := range monthsBE {
+		value, ok := input.MonthlyValues[month]
+		if !ok {
+			continue
+		}
+		if err := setMonthlyValue(id, month, year, value); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
 	query := preloadMonthlyValues(DB.Where("id = ?", id), year)
-	query.First(&item)
+	if err := query.First(&item).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	c.JSON(http.StatusOK, item)
+}
+
+// setMonthlyValue writes one month's amount, creating the row when the user has
+// not filled that month in yet. It never touches paid: the row is looked up and
+// updated by primary key rather than overwritten wholesale.
+func setMonthlyValue(itemID, month string, year int, value float64) error {
+	var mv BudgetMonthlyValue
+	err := DB.Where("budget_item_id = ? AND month = ? AND year = ?", itemID, month, year).First(&mv).Error
+	if err == nil {
+		return DB.Model(&mv).Update("value", value).Error
+	}
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return DB.Create(&BudgetMonthlyValue{
+			ID:           uuid.New().String(),
+			BudgetItemID: itemID,
+			Month:        month,
+			Year:         year,
+			Value:        value,
+		}).Error
+	}
+	return err
 }
 
 type UpdateMonthlyValueInput struct {
@@ -165,26 +206,7 @@ func UpdateBudgetMonthlyValue(c *gin.Context) {
 
 	year := input.Year
 
-	var mv BudgetMonthlyValue
-	err := DB.Where("budget_item_id = ? AND month = ? AND year = ?", id, input.Month, year).First(&mv).Error
-	if err == nil {
-		if err := DB.Model(&mv).Update("value", input.Value).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-	} else if errors.Is(err, gorm.ErrRecordNotFound) {
-		mv = BudgetMonthlyValue{
-			ID:           uuid.New().String(),
-			BudgetItemID: id,
-			Month:        input.Month,
-			Year:         year,
-			Value:        input.Value,
-		}
-		if err := DB.Create(&mv).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-	} else {
+	if err := setMonthlyValue(id, input.Month, year, input.Value); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { BudgetItem, MonthBE, Baht } from '@/types';
-import { budgetService } from '@/services/budgetService';
+import { budgetService, type BudgetItemDraft } from '@/services/budgetService';
 
 const CURRENT_YEAR_BE = new Date().getFullYear() + 543;
 
@@ -22,7 +22,7 @@ export function useBudget() {
   useEffect(() => { refresh(); }, [refresh]);
 
   const create = useCallback(
-    async (data: Omit<BudgetItem, 'id'>) => {
+    async (data: BudgetItemDraft) => {
       await budgetService.create(data, year);
       await refresh();
     },

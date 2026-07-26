@@ -2,10 +2,10 @@ import { useEffect } from 'react';
 import { Modal, Form, Input, InputNumber, Select } from 'antd';
 import type { BudgetItem, BudgetCategory, MonthBE } from '@/types';
 import { MONTHS_BE } from '@/types';
-import { budgetService } from '@/services/budgetService';
+import { budgetService, type BudgetItemDraft } from '@/services/budgetService';
 
 export interface BudgetFormResult {
-  values: Omit<BudgetItem, 'id'>;
+  values: BudgetItemDraft;
 }
 
 interface Props {
@@ -43,7 +43,6 @@ export function BudgetItemForm({ open, onCancel, onSubmit, initialValues }: Prop
         name: formValues.name,
         category: formValues.category,
         monthlyValues,
-        monthlyPaid: budgetService.getEmptyMonthlyPaid(),
       },
     });
   };

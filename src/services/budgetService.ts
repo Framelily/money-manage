@@ -2,6 +2,10 @@ import type { BudgetItem, MonthBE, Baht, MonthPaid } from '@/types';
 import { MONTHS_BE } from '@/types';
 import api from './api';
 
+/** What a form can supply. Paid state is never authored here — it is set by
+ *  ticking a month, so it must not ride along on a create or an edit. */
+export type BudgetItemDraft = Omit<BudgetItem, 'id' | 'monthlyPaid'>;
+
 interface ApiBudgetMonthlyValue {
   id: string;
   budgetItemId: string;
@@ -53,7 +57,7 @@ export const budgetService = {
     return transformBudgetItem(data);
   },
 
-  async create(data: Omit<BudgetItem, 'id'>, year?: number): Promise<BudgetItem> {
+  async create(data: BudgetItemDraft, year?: number): Promise<BudgetItem> {
     const { data: created } = await api.post<ApiBudgetItem>('/budget', {
       name: data.name,
       category: data.category,
@@ -68,6 +72,7 @@ export const budgetService = {
     const { data: updated } = await api.put<ApiBudgetItem>(`/budget/${id}`, {
       name: data.name,
       category: data.category,
+      monthlyValues: data.monthlyValues,
     }, { params });
     return transformBudgetItem(updated);
   },
@@ -92,9 +97,4 @@ export const budgetService = {
     return values;
   },
 
-  getEmptyMonthlyPaid(): Record<MonthBE, MonthPaid> {
-    const paid = {} as Record<MonthBE, MonthPaid>;
-    MONTHS_BE.forEach((m) => { paid[m] = { state: 'none', amount: 0 }; });
-    return paid;
-  },
 };

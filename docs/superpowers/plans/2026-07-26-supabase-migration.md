@@ -487,6 +487,114 @@ git commit -m "feat: add migrate subcommand for the MySQL to Postgres copy"
 
 ---
 
+### Task 2b: Rehearse the whole path against a throwaway local Postgres
+
+**Files:** none modified. Pure verification, and worth its own task: it exercises every risk in Task 3 without a maintenance window, real data, or a Supabase account.
+
+**Interfaces:**
+- Consumes: Tasks 1 and 2.
+- Produces: evidence that the driver switch, `AutoMigrate`, the copy, the guards, and every handler behave correctly on Postgres 17 — so Task 3 is a credential change rather than a first attempt.
+
+This was run on 2026-07-26 and passed in full. Re-run it after any change to `migrate.go`, `database.go`, or the models.
+
+- [ ] **Step 1: Seed the local MySQL with data that has teeth**
+
+The local `db` container already holds the schema from the Phase 1 verification. Insert rows that cover every translation hazard: Thai text, a soft-deleted user, NULL nullable columns, `tinyint` booleans in both states, non-round floats, and explicit wall-clock timestamps.
+
+```bash
+docker compose -f docker-compose.yml -f "$SCR/no-db-port.yml" up -d db
+docker compose exec -T db mysql -uroot -pmoney123 money_manage <<'SQL'
+SET NAMES utf8mb4;
+INSERT INTO users (id,username,password,created_at,deleted_at) VALUES
+ ('u-soft','ผู้ใช้ลบแล้ว','$2a$10$abcdefghijklmnopqrstuv','2026-01-15 09:30:00','2026-02-01 11:00:00');
+INSERT INTO installment_plans
+ (id,provider,name,total_amount,per_month,total_installments,is_closed,note,provider_color,user_id,created_at,updated_at) VALUES
+ ('p-ktc','KTC','ตู้เย็น 2 ประตู',24000.50,2000.00,12,0,'ผ่อน 0% นาน 12 เดือน','#1f9d55','<a real user id>','2026-03-01 20:38:00','2026-03-03 16:01:00'),
+ ('p-shp','SHOPEE','Shopee PayLater',3500.75,NULL,NULL,1,NULL,NULL,'<a real user id>','2026-04-10 08:15:00','2026-05-02 10:00:00');
+SQL
+```
+
+Add matching `installments`, `budget_items`, `budget_monthly_values` (with Thai month strings such as `เม.ย.`, `พ.ค.`, `ก.ค.`), `person_debts`, and `debt_payments` rows in the same style.
+
+- [ ] **Step 2: Start a throwaway Postgres on the Compose network**
+
+No published port — the migrate container reaches it by container name:
+
+```bash
+docker run -d --name mm-pg-verify --network money-manage_default \
+  -e POSTGRES_PASSWORD=verify_pw -e POSTGRES_DB=postgres postgres:17-alpine
+```
+
+- [ ] **Step 3: Run the migration into it**
+
+`DB_SSLMODE=disable` because a bare local Postgres has no TLS:
+
+```bash
+docker compose --profile tools run --rm --no-deps \
+  -e DB_HOST=mm-pg-verify -e DB_USER=postgres -e DB_PASSWORD=verify_pw -e DB_SSLMODE=disable \
+  -e MYSQL_DSN='root:money123@tcp(db:3306)/money_manage?charset=utf8mb4&parseTime=True&loc=Asia%2FBangkok' \
+  migrate
+```
+
+Expected: every table `OK`, the Thai month list printed, and `All tables match.`
+
+- [ ] **Step 4: Check what the report cannot judge**
+
+```bash
+docker exec mm-pg-verify psql -U postgres -c "select column_name,data_type from information_schema.columns where table_name='installment_plans';"
+docker exec mm-pg-verify psql -U postgres -c "select id,per_month,total_installments,note,is_closed from installment_plans order by id;"
+docker exec mm-pg-verify psql -U postgres -c "set timezone='Asia/Bangkok'; select created_at from installment_plans where id='p-ktc';"
+docker exec mm-pg-verify psql -U postgres -c "select username,(deleted_at is not null) from users order by id;"
+```
+
+Expected, and all confirmed on the 2026-07-26 run:
+
+- `created_at` is `timestamp with time zone`, `is_closed` is `boolean`, amounts are `numeric`
+- The Shopee plan keeps NULL in `per_month`, `total_installments`, `note`, `provider_color`
+- **`created_at` reads back `2026-03-01 20:38:00+07`** — the source wall-clock exactly, stored as `13:38+00`. This is the single largest corruption risk in the migration; the `loc=Asia%2FBangkok` DSN plus `TimeZone=Asia/Bangkok` is what makes it come out right
+- The soft-deleted user is present, proving `Unscoped()` in `copyTable` works
+
+- [ ] **Step 5: Verify both guards refuse to do damage**
+
+Re-run the exact command from Step 3, then run it again with `-e MYSQL_DSN=`:
+
+Expected: `destination already holds N users — clear it before re-running`, then `MYSQL_DSN is required — see .env.example`. Neither writes anything.
+
+- [ ] **Step 6: Run the real API against the migrated Postgres**
+
+**Rebuild the image first.** The `money-manage-api` image from Phase 1 still contains the MySQL driver, and running it against Postgres fails with `[mysql] connection.go:49: unexpected EOF` — a confusing symptom with a trivial cause. The production deploy rebuilds via `up -d --build`, but a manual `docker run` does not:
+
+```bash
+docker compose build api
+docker run -d --name mm-api-verify --network money-manage_default -p 8080:8080 \
+  -e DB_HOST=mm-pg-verify -e DB_PORT=5432 -e DB_USER=postgres \
+  -e DB_PASSWORD=verify_pw -e DB_NAME=postgres -e DB_SSLMODE=disable \
+  -e JWT_SECRET=verify_secret -e GIN_MODE=release -e STATIC_DIR=./dist \
+  -v "$PWD/apps/web/dist:/app/dist:ro" money-manage-api
+```
+
+Then exercise the read and write paths, especially the ones with the most Postgres exposure:
+
+- `POST /api/auth/login` as a migrated user — proves the copied bcrypt hash works
+- `GET /api/installments` — `Preload` with `ORDER BY installment_number ASC`
+- `PATCH /api/installments/:planId/toggle/:installmentId`
+- `POST /api/debts/:id/payment` — the `DB.Begin()` transaction at `handler_debt.go:154`
+- `PATCH /api/budget/:id/paid` — a boolean write
+- `PATCH /api/installments/paid` — `plan_id IN ?` and `is_closed = ?`
+
+All returned correct results on the 2026-07-26 run. Note `PATCH /api/budget/:id/month` handles `value` only; the paid flag has its own `/paid` route. Sending `paid` to `/month` is silently ignored — pre-existing behaviour, not a Postgres regression.
+
+- [ ] **Step 7: Tear down**
+
+```bash
+docker rm -f mm-api-verify mm-pg-verify
+docker compose stop db
+```
+
+Leave the MySQL container and its volume alone.
+
+---
+
 ### Task 3: Run the migration and cut over
 
 **Files:** none modified. This task runs on the production server against real data.
@@ -551,6 +659,8 @@ docker compose --profile tools run --rm migrate
 ```
 
 Expected output, in order: `Database connected and migrated successfully` (AutoMigrate created the seven tables in Supabase), a `== copying ==` block listing row counts per table, a `== verification ==` block, the list of Thai month values, and finally `All tables match.`
+
+Task 2b already rehearsed this exact command against a local Postgres 17, so a failure here points at the Supabase connection or the real data's shape, not at the migration code.
 
 If it exits with `MISMATCH found — do not cut over`, **stop**. Nothing has changed in production. Read the offending row, decide whether it needs clearing the destination (`truncate` the seven tables in the Supabase SQL editor) and re-running, and only continue once the report is clean.
 

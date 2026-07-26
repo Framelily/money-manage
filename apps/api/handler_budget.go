@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -164,24 +165,35 @@ func UpdateBudgetMonthlyValue(c *gin.Context) {
 
 	year := input.Year
 
-	result := DB.Model(&BudgetMonthlyValue{}).
-		Where("budget_item_id = ? AND month = ? AND year = ?", id, input.Month, year).
-		Update("value", input.Value)
-
-	if result.RowsAffected == 0 {
-		// Create if not exists
-		mv := BudgetMonthlyValue{
+	var mv BudgetMonthlyValue
+	err := DB.Where("budget_item_id = ? AND month = ? AND year = ?", id, input.Month, year).First(&mv).Error
+	if err == nil {
+		if err := DB.Model(&mv).Update("value", input.Value).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+	} else if errors.Is(err, gorm.ErrRecordNotFound) {
+		mv = BudgetMonthlyValue{
 			ID:           uuid.New().String(),
 			BudgetItemID: id,
 			Month:        input.Month,
 			Year:         year,
 			Value:        input.Value,
 		}
-		DB.Create(&mv)
+		if err := DB.Create(&mv).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+	} else {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	query := preloadMonthlyValues(DB.Where("id = ?", id), year)
-	query.First(&item)
+	if err := query.First(&item).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	c.JSON(http.StatusOK, item)
 }
 
@@ -207,12 +219,15 @@ func UpdateBudgetMonthlyPaid(c *gin.Context) {
 		return
 	}
 
-	result := DB.Model(&BudgetMonthlyValue{}).
-		Where("budget_item_id = ? AND month = ? AND year = ?", id, input.Month, input.Year).
-		Update("paid", input.Paid)
-
-	if result.RowsAffected == 0 {
-		mv := BudgetMonthlyValue{
+	var mv BudgetMonthlyValue
+	err := DB.Where("budget_item_id = ? AND month = ? AND year = ?", id, input.Month, input.Year).First(&mv).Error
+	if err == nil {
+		if err := DB.Model(&mv).Update("paid", input.Paid).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+	} else if errors.Is(err, gorm.ErrRecordNotFound) {
+		mv = BudgetMonthlyValue{
 			ID:           uuid.New().String(),
 			BudgetItemID: id,
 			Month:        input.Month,
@@ -220,11 +235,20 @@ func UpdateBudgetMonthlyPaid(c *gin.Context) {
 			Value:        0,
 			Paid:         input.Paid,
 		}
-		DB.Create(&mv)
+		if err := DB.Create(&mv).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+	} else {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	query := preloadMonthlyValues(DB.Where("id = ?", id), input.Year)
-	query.First(&item)
+	if err := query.First(&item).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	c.JSON(http.StatusOK, item)
 }
 

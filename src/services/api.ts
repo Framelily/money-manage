@@ -15,7 +15,10 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Auth endpoints report their own failures (e.g. wrong credentials) to the
+    // caller. Redirecting here would reload the page and discard the message.
+    const isAuthRequest = error.config?.url?.startsWith('/auth/');
+    if (error.response?.status === 401 && !isAuthRequest) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';

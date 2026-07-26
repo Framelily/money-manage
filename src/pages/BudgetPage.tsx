@@ -18,8 +18,8 @@ const YEAR_OPTIONS = Array.from({ length: 7 }, (_, i) => {
 
 export function BudgetPage() {
   const { message } = App.useApp();
-  const { items, loading, year, setYear, create, update, updateMonthlyValue, setMonthlyPaid, remove } = useBudget();
-  const { plans, setProviderPaid } = useInstallments();
+  const { items, loading, year, setYear, create, update, updateMonthlyValue, setMonthlyPaid, remove, refresh: refreshBudget } = useBudget();
+  const { plans, setProviderPaid, refresh: refreshPlans } = useInstallments();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<BudgetItem | undefined>();
   const [showPastMonths, setShowPastMonths] = useState(false);
@@ -53,6 +53,11 @@ export function BudgetPage() {
         await setMonthlyPaid(item.id, month, paid);
       }
     } catch {
+      if (item.id.startsWith('installment-')) {
+        await refreshPlans(true);
+      } else {
+        await refreshBudget();
+      }
       message.error('บันทึกสถานะจ่ายไม่สำเร็จ');
     }
   };

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Typography, Button, Select, App } from 'antd';
+import { Typography, Button, Select, Checkbox, App } from 'antd';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { useBudget } from '@/hooks/useBudget';
 import { useInstallments } from '@/hooks/useInstallments';
@@ -8,6 +8,7 @@ import { BudgetItemForm, type BudgetFormResult } from '@/components/budget/Budge
 import { BudgetChart } from '@/components/budget/BudgetChart';
 import type { BudgetItem } from '@/types';
 import { installmentsToBudgetItems } from '@/utils/installmentBudget';
+import { getVisibleMonths } from '@/utils/date';
 
 const CURRENT_YEAR_BE = new Date().getFullYear() + 543;
 const YEAR_OPTIONS = Array.from({ length: 7 }, (_, i) => {
@@ -21,6 +22,13 @@ export function BudgetPage() {
   const { plans } = useInstallments();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<BudgetItem | undefined>();
+  const [showPastMonths, setShowPastMonths] = useState(false);
+  const isCurrentYear = year === CURRENT_YEAR_BE;
+
+  const months = useMemo(
+    () => getVisibleMonths(year, showPastMonths),
+    [year, showPastMonths],
+  );
 
   const installmentItems = useMemo(() => installmentsToBudgetItems(plans, year), [plans, year]);
 
@@ -52,7 +60,7 @@ export function BudgetPage() {
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <Typography.Title level={4} style={{ margin: 0 }}>งบรายเดือน</Typography.Title>
           <Select
             value={year}
@@ -60,12 +68,20 @@ export function BudgetPage() {
             options={YEAR_OPTIONS}
             style={{ width: 100 }}
           />
+          {isCurrentYear && (
+            <Checkbox
+              checked={showPastMonths}
+              onChange={(e) => setShowPastMonths(e.target.checked)}
+            >
+              แสดงเดือนที่ผ่านมา
+            </Checkbox>
+          )}
         </div>
         <Button type="primary" icon={<PlusIcon className="w-4 h-4" />} onClick={() => { setEditing(undefined); setFormOpen(true); }} block className="sm:!w-auto">
           เพิ่มรายการ
         </Button>
       </div>
-      <BudgetTable items={allItems} loading={loading} onEdit={handleEdit} onDelete={handleDelete} onCellChange={updateMonthlyValue} />
+      <BudgetTable items={allItems} months={months} loading={loading} onEdit={handleEdit} onDelete={handleDelete} onCellChange={updateMonthlyValue} />
       <BudgetChart items={allItems} loading={loading} />
       <BudgetItemForm
         open={formOpen}

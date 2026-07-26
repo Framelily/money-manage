@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { Table, InputNumber, Button, Popconfirm } from 'antd';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import type { BudgetItem, MonthBE, Baht, BudgetCategory } from '@/types';
-import { MONTHS_BE } from '@/types';
 import { formatNumber } from '@/utils/format';
 
 interface Props {
   items: BudgetItem[];
+  months: readonly MonthBE[];
   loading: boolean;
   onEdit: (item: BudgetItem) => void;
   onDelete: (id: string) => void;
@@ -62,7 +62,7 @@ function useIsMobile() {
   return isMobile;
 }
 
-export function BudgetTable({ items, loading, onEdit, onDelete, onCellChange }: Props) {
+export function BudgetTable({ items, months, loading, onEdit, onDelete, onCellChange }: Props) {
   const isMobile = useIsMobile();
   const categories: BudgetCategory[] = ['income', 'fixedExpense', 'variableExpense'];
 
@@ -83,7 +83,7 @@ export function BudgetTable({ items, loading, onEdit, onDelete, onCellChange }: 
     });
     // Summary row
     const summary: Record<MonthBE, number> = {} as Record<MonthBE, number>;
-    MONTHS_BE.forEach((m) => {
+    months.forEach((m) => {
       summary[m] = catItems.reduce((s, i) => s + (i.monthlyValues[m] || 0), 0);
     });
     rows.push({
@@ -98,7 +98,7 @@ export function BudgetTable({ items, loading, onEdit, onDelete, onCellChange }: 
 
   // Remaining row
   const remaining: Record<MonthBE, number> = {} as Record<MonthBE, number>;
-  MONTHS_BE.forEach((m) => {
+  months.forEach((m) => {
     const inc = items.filter((i) => i.category === 'income').reduce((s, i) => s + (i.monthlyValues[m] || 0), 0);
     const fix = items.filter((i) => i.category === 'fixedExpense').reduce((s, i) => s + (i.monthlyValues[m] || 0), 0);
     const vari = items.filter((i) => i.category === 'variableExpense').reduce((s, i) => s + (i.monthlyValues[m] || 0), 0);
@@ -113,13 +113,18 @@ export function BudgetTable({ items, loading, onEdit, onDelete, onCellChange }: 
     values: remaining,
   });
 
+  const nameColWidth = isMobile ? 130 : 200;
+  const monthColWidth = isMobile ? 100 : 120;
+  const actionsColWidth = isMobile ? 64 : 80;
+  const scrollX = nameColWidth + months.length * monthColWidth + actionsColWidth;
+
   const columns = [
     {
       title: 'รายการ',
       dataIndex: 'name',
       key: 'name',
       fixed: isMobile ? undefined : ('left' as const),
-      width: isMobile ? 130 : 200,
+      width: nameColWidth,
       render: (name: string, record: RowData) => {
         if (record.isSummary) return <strong style={{ color: CATEGORY_CONFIG[record.category].color }}>{name}</strong>;
         if (record.isRemaining) return <strong>{name}</strong>;
@@ -135,10 +140,10 @@ export function BudgetTable({ items, loading, onEdit, onDelete, onCellChange }: 
         );
       },
     },
-    ...MONTHS_BE.map((month) => ({
+    ...months.map((month) => ({
       title: month,
       key: month,
-      width: isMobile ? 100 : 120,
+      width: monthColWidth,
       render: (_: unknown, record: RowData) => {
         const val = record.values[month] || 0;
         if (record.isSummary) {
@@ -158,7 +163,7 @@ export function BudgetTable({ items, loading, onEdit, onDelete, onCellChange }: 
     {
       title: '',
       key: 'actions',
-      width: isMobile ? 64 : 80,
+      width: actionsColWidth,
       fixed: isMobile ? undefined : ('right' as const),
       render: (_: unknown, record: RowData) => {
         if (record.isSummary || record.isRemaining || record.isReadOnly) return null;
@@ -180,7 +185,7 @@ export function BudgetTable({ items, loading, onEdit, onDelete, onCellChange }: 
       columns={columns}
       loading={loading}
       pagination={false}
-      scroll={{ x: isMobile ? 1100 : 1400 }}
+      scroll={{ x: scrollX }}
       size="small"
       bordered
       rowClassName={(record) => {

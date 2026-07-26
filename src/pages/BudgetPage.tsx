@@ -6,7 +6,7 @@ import { useInstallments } from '@/hooks/useInstallments';
 import { BudgetTable } from '@/components/budget/BudgetTable';
 import { BudgetItemForm, type BudgetFormResult } from '@/components/budget/BudgetItemForm';
 import { BudgetChart } from '@/components/budget/BudgetChart';
-import type { BudgetItem } from '@/types';
+import { type BudgetItem, MONTHS_BE } from '@/types';
 import { installmentsToBudgetItems } from '@/utils/installmentBudget';
 
 const CURRENT_YEAR_BE = new Date().getFullYear() + 543;
@@ -65,7 +65,7 @@ export function BudgetPage() {
           เพิ่มรายการ
         </Button>
       </div>
-      <BudgetTable items={allItems} loading={loading} onEdit={handleEdit} onDelete={handleDelete} onCellChange={updateMonthlyValue} />
+      <BudgetTable items={allItems} months={MONTHS_BE} loading={loading} onEdit={handleEdit} onDelete={handleDelete} onCellChange={updateMonthlyValue} />
       <BudgetChart items={allItems} loading={loading} />
       <BudgetItemForm
         open={formOpen}

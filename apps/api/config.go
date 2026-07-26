@@ -13,6 +13,7 @@ type Config struct {
 	DBUser    string
 	DBPass    string
 	DBName    string
+	DBSSLMode string
 	JWTSecret string
 }
 
@@ -24,10 +25,11 @@ func LoadConfig() {
 	AppConfig = Config{
 		Port:      getEnv("PORT", "8080"),
 		DBHost:    getEnv("DB_HOST", "localhost"),
-		DBPort:    getEnv("DB_PORT", "3306"),
-		DBUser:    getEnv("DB_USER", "root"),
+		DBPort:    getEnv("DB_PORT", "5432"),
+		DBUser:    getEnv("DB_USER", "postgres"),
 		DBPass:    getEnv("DB_PASSWORD", ""),
-		DBName:    getEnv("DB_NAME", "money_manage"),
+		DBName:    getEnv("DB_NAME", "postgres"),
+		DBSSLMode: getEnv("DB_SSLMODE", "require"),
 		JWTSecret: getEnv("JWT_SECRET", "default_secret_change_me"),
 	}
 }

@@ -1,5 +1,7 @@
 # Monorepo Consolidation Implementation Plan (Phase 1 of 2)
 
+**Status (2026-07-26): all five tasks executed and verified locally; merged into local `main`, not pushed.** Remaining before production: re-clone the monorepo at `APP_DIR` on the self-hosted runner with `.env` at its root, then push `main`. See "Post-phase manual steps".
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Merge the `money-manage-api` repository into `money-manage` as a single monorepo with one deploy workflow, without changing the database.

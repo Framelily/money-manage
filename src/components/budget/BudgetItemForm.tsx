@@ -43,6 +43,7 @@ export function BudgetItemForm({ open, onCancel, onSubmit, initialValues }: Prop
         name: formValues.name,
         category: formValues.category,
         monthlyValues,
+        monthlyPaid: budgetService.getEmptyMonthlyPaid(),
       },
     });
   };

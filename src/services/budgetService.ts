@@ -1,4 +1,4 @@
-import type { BudgetItem, MonthBE, Baht } from '@/types';
+import type { BudgetItem, MonthBE, Baht, MonthPaid } from '@/types';
 import { MONTHS_BE } from '@/types';
 import api from './api';
 
@@ -8,6 +8,7 @@ interface ApiBudgetMonthlyValue {
   month: MonthBE;
   year: number;
   value: number;
+  paid: boolean;
 }
 
 interface ApiBudgetItem {
@@ -19,13 +20,23 @@ interface ApiBudgetItem {
 
 function transformBudgetItem(item: ApiBudgetItem): BudgetItem {
   const monthlyValues = {} as Record<MonthBE, Baht>;
-  MONTHS_BE.forEach((m) => { monthlyValues[m] = 0; });
-  item.monthlyValues?.forEach((mv) => { monthlyValues[mv.month] = mv.value; });
+  const monthlyPaid = {} as Record<MonthBE, MonthPaid>;
+  MONTHS_BE.forEach((m) => {
+    monthlyValues[m] = 0;
+    monthlyPaid[m] = { state: 'none', amount: 0 };
+  });
+  item.monthlyValues?.forEach((mv) => {
+    monthlyValues[mv.month] = mv.value;
+    monthlyPaid[mv.month] = mv.paid
+      ? { state: 'all', amount: mv.value }
+      : { state: 'none', amount: 0 };
+  });
   return {
     id: item.id,
     name: item.name,
     category: item.category,
     monthlyValues,
+    monthlyPaid,
   };
 }
 
@@ -66,6 +77,11 @@ export const budgetService = {
     return transformBudgetItem(updated);
   },
 
+  async setMonthlyPaid(id: string, month: MonthBE, paid: boolean, year?: number): Promise<BudgetItem> {
+    const { data: updated } = await api.patch<ApiBudgetItem>(`/budget/${id}/paid`, { month, paid, year });
+    return transformBudgetItem(updated);
+  },
+
   async delete(id: string): Promise<void> {
     await api.delete(`/budget/${id}`);
   },
@@ -74,5 +90,11 @@ export const budgetService = {
     const values = {} as Record<MonthBE, Baht>;
     MONTHS_BE.forEach((m) => { values[m] = 0; });
     return values;
+  },
+
+  getEmptyMonthlyPaid(): Record<MonthBE, MonthPaid> {
+    const paid = {} as Record<MonthBE, MonthPaid>;
+    MONTHS_BE.forEach((m) => { paid[m] = { state: 'none', amount: 0 }; });
+    return paid;
   },
 };

@@ -11,7 +11,7 @@ function toMonthlyValues(values: number[]): Record<MonthBE, number> {
 }
 
 //                                      ม.ค. ก.พ. มี.ค. เม.ย. พ.ค.  มิ.ย. ก.ค.  ส.ค.  ก.ย.  ต.ค.  พ.ย.  ธ.ค.
-export const budgetItems: BudgetItem[] = [
+const items: Omit<BudgetItem, 'monthlyPaid'>[] = [
   // Income
   { id: uuid(), name: 'เงินเดือน + เสริม', category: 'income', monthlyValues: toMonthlyValues([0, 0, 0, 44900, 44900, 44900, 44900, 44900, 44900, 44900, 44900, 44900]) },
   { id: uuid(), name: 'รายได้อื่น (โดนัท)', category: 'income', monthlyValues: toMonthlyValues([0, 0, 0, 1300, 1300, 1300, 1300, 1300, 0, 0, 0, 0]) },
@@ -32,3 +32,8 @@ export const budgetItems: BudgetItem[] = [
   { id: uuid(), name: 'บัตร KTC', category: 'variableExpense', monthlyValues: toMonthlyValues([0, 0, 0, 14380, 14380, 14380, 14380, 11305, 624, 0, 0, 0]) },
   { id: uuid(), name: 'บัตร UOB', category: 'variableExpense', monthlyValues: toMonthlyValues([0, 0, 0, 6857, 6857, 5367, 5367, 5367, 4297, 0, 0, 0]) },
 ];
+
+export const budgetItems: BudgetItem[] = items.map((item) => ({
+  ...item,
+  monthlyPaid: MONTHS_BE.reduce((acc, m) => ({ ...acc, [m]: { state: 'none' as const, amount: 0 } }), {} as BudgetItem['monthlyPaid']),
+}));

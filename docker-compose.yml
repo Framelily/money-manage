@@ -36,6 +36,23 @@ services:
       db:
         condition: service_healthy
 
+  # One-shot MySQL -> Postgres data copy. Behind a profile so it never starts
+  # with `docker compose up`; run it with:
+  #   docker compose --profile tools run --rm migrate
+  # It needs the db service present so the MySQL host in MYSQL_DSN resolves.
+  migrate:
+    build: ./apps/api
+    profiles: ["tools"]
+    command: ["./server", "migrate"]
+    environment:
+      MYSQL_DSN: ${MYSQL_DSN}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: "5432"
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: postgres
+      DB_SSLMODE: require
+
   tunnel:
     image: cloudflare/cloudflared:latest
     restart: unless-stopped

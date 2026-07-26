@@ -15,6 +15,13 @@ func main() {
 	LoadConfig()
 	ConnectDatabase()
 
+	// One-shot data migration from the legacy MySQL database. Runs after
+	// ConnectDatabase so AutoMigrate has already created the destination schema.
+	if len(os.Args) > 1 && os.Args[1] == "migrate" {
+		RunMySQLMigration()
+		return
+	}
+
 	r := gin.Default()
 
 	// CORS configuration

@@ -42,6 +42,14 @@ export function useBudget() {
     [refresh, year]
   );
 
+  const setMonthlyPaid = useCallback(
+    async (id: string, month: MonthBE, paid: boolean) => {
+      await budgetService.setMonthlyPaid(id, month, paid, year);
+      await refresh();
+    },
+    [refresh, year]
+  );
+
   const remove = useCallback(
     async (id: string) => {
       await budgetService.delete(id);
@@ -50,5 +58,5 @@ export function useBudget() {
     [refresh]
   );
 
-  return { items, loading, year, setYear, refresh, create, update, updateMonthlyValue, remove };
+  return { items, loading, year, setYear, refresh, create, update, updateMonthlyValue, setMonthlyPaid, remove };
 }

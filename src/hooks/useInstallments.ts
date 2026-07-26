@@ -55,5 +55,13 @@ export function useInstallments() {
     [refresh]
   );
 
-  return { plans, loading, refresh, getByProvider, create, update, remove, toggleInstallment };
+  const setProviderPaid = useCallback(
+    async (provider: CardProvider, month: number, year: number, paid: boolean) => {
+      await installmentService.setProviderPaid(provider, month, year, paid);
+      await refresh(true);
+    },
+    [refresh]
+  );
+
+  return { plans, loading, refresh, getByProvider, create, update, remove, toggleInstallment, setProviderPaid };
 }

@@ -6,7 +6,7 @@ import { useInstallments } from '@/hooks/useInstallments';
 import { BudgetTable } from '@/components/budget/BudgetTable';
 import { BudgetItemForm, type BudgetFormResult } from '@/components/budget/BudgetItemForm';
 import { BudgetChart } from '@/components/budget/BudgetChart';
-import type { BudgetItem } from '@/types';
+import { type BudgetItem, type MonthBE, MONTHS_BE } from '@/types';
 import { installmentsToBudgetItems } from '@/utils/installmentBudget';
 import { getVisibleMonths } from '@/utils/date';
 
@@ -18,8 +18,8 @@ const YEAR_OPTIONS = Array.from({ length: 7 }, (_, i) => {
 
 export function BudgetPage() {
   const { message } = App.useApp();
-  const { items, loading, year, setYear, create, update, updateMonthlyValue, remove } = useBudget();
-  const { plans } = useInstallments();
+  const { items, loading, year, setYear, create, update, updateMonthlyValue, setMonthlyPaid, remove } = useBudget();
+  const { plans, setProviderPaid } = useInstallments();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<BudgetItem | undefined>();
   const [showPastMonths, setShowPastMonths] = useState(false);
@@ -42,6 +42,19 @@ export function BudgetPage() {
   const handleDelete = async (id: string) => {
     await remove(id);
     message.success('ลบรายการสำเร็จ');
+  };
+
+  const handlePaidChange = async (item: BudgetItem, month: MonthBE, paid: boolean) => {
+    try {
+      if (item.id.startsWith('installment-')) {
+        const provider = item.id.slice('installment-'.length);
+        await setProviderPaid(provider, MONTHS_BE.indexOf(month), year, paid);
+      } else {
+        await setMonthlyPaid(item.id, month, paid);
+      }
+    } catch {
+      message.error('บันทึกสถานะจ่ายไม่สำเร็จ');
+    }
   };
 
   const handleSubmit = async (result: BudgetFormResult) => {
@@ -81,7 +94,7 @@ export function BudgetPage() {
           เพิ่มรายการ
         </Button>
       </div>
-      <BudgetTable items={allItems} months={months} loading={loading} onEdit={handleEdit} onDelete={handleDelete} onCellChange={updateMonthlyValue} />
+      <BudgetTable items={allItems} months={months} loading={loading} onEdit={handleEdit} onDelete={handleDelete} onCellChange={updateMonthlyValue} onPaidChange={handlePaidChange} />
       <BudgetChart items={allItems} loading={loading} />
       <BudgetItemForm
         open={formOpen}

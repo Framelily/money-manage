@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Table, InputNumber, Button, Popconfirm } from 'antd';
+import { Table, InputNumber, Button, Popconfirm, Checkbox } from 'antd';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
-import type { BudgetItem, MonthBE, Baht, BudgetCategory } from '@/types';
+import type { BudgetItem, MonthBE, Baht, BudgetCategory, MonthPaid } from '@/types';
 import { formatNumber } from '@/utils/format';
 
 interface Props {
@@ -11,6 +11,7 @@ interface Props {
   onEdit: (item: BudgetItem) => void;
   onDelete: (id: string) => void;
   onCellChange: (id: string, month: MonthBE, value: Baht) => void;
+  onPaidChange: (item: BudgetItem, month: MonthBE, paid: boolean) => void;
 }
 
 const CATEGORY_CONFIG: Record<BudgetCategory, { label: string; color: string; tagColor: string }> = {
@@ -28,6 +29,7 @@ interface RowData {
   isRemaining?: boolean;
   isReadOnly?: boolean;
   values: Record<MonthBE, number>;
+  paid: Record<MonthBE, MonthPaid>;
   original?: BudgetItem;
 }
 
@@ -62,11 +64,14 @@ function useIsMobile() {
   return isMobile;
 }
 
-export function BudgetTable({ items, months, loading, onEdit, onDelete, onCellChange }: Props) {
+export function BudgetTable({ items, months, loading, onEdit, onDelete, onCellChange, onPaidChange }: Props) {
   const isMobile = useIsMobile();
   const categories: BudgetCategory[] = ['income', 'fixedExpense', 'variableExpense'];
 
   const rows: RowData[] = [];
+
+  const emptyPaid = {} as Record<MonthBE, MonthPaid>;
+  months.forEach((m) => { emptyPaid[m] = { state: 'none', amount: 0 }; });
 
   categories.forEach((cat) => {
     const catItems = items.filter((i) => i.category === cat);
@@ -78,6 +83,7 @@ export function BudgetTable({ items, months, loading, onEdit, onDelete, onCellCh
         category: cat,
         isReadOnly: item.id.startsWith('installment-'),
         values: item.monthlyValues,
+        paid: item.monthlyPaid,
         original: item,
       });
     });
@@ -93,6 +99,7 @@ export function BudgetTable({ items, months, loading, onEdit, onDelete, onCellCh
       category: cat,
       isSummary: true,
       values: summary,
+      paid: emptyPaid,
     });
   });
 
@@ -111,10 +118,11 @@ export function BudgetTable({ items, months, loading, onEdit, onDelete, onCellCh
     category: 'income',
     isRemaining: true,
     values: remaining,
+    paid: emptyPaid,
   });
 
   const nameColWidth = isMobile ? 130 : 200;
-  const monthColWidth = isMobile ? 100 : 120;
+  const monthColWidth = isMobile ? 124 : 144;
   const actionsColWidth = isMobile ? 64 : 80;
   const scrollX = nameColWidth + months.length * monthColWidth + actionsColWidth;
 
@@ -152,11 +160,28 @@ export function BudgetTable({ items, months, loading, onEdit, onDelete, onCellCh
         if (record.isRemaining) {
           return <strong style={{ color: val >= 0 ? '#10b981' : '#ef4444' }}>{formatNumber(val)}</strong>;
         }
+        const paid = record.paid[month] ?? { state: 'none' as const, amount: 0 };
+        const checkbox = (
+          <Checkbox
+            checked={paid.state === 'all'}
+            indeterminate={paid.state === 'partial'}
+            onChange={(e) => onPaidChange(record.original!, month, e.target.checked)}
+          />
+        );
+
         if (record.isReadOnly) {
-          return <span style={{ color: '#999' }}>{formatNumber(val)}</span>;
+          return (
+            <div className="flex items-center gap-1">
+              {val > 0 ? checkbox : <span style={{ width: 16, flexShrink: 0 }} />}
+              <span style={{ color: '#999' }}>{formatNumber(val)}</span>
+            </div>
+          );
         }
         return (
-          <EditableCell value={val} onChange={(newVal) => onCellChange(record.id, month, newVal)} />
+          <div className="flex items-center gap-1">
+            {checkbox}
+            <EditableCell value={val} onChange={(newVal) => onCellChange(record.id, month, newVal)} />
+          </div>
         );
       },
     })),

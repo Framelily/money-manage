@@ -56,6 +56,7 @@ type BudgetMonthlyValue struct {
 	Month        string  `gorm:"type:varchar(20);not null" json:"month"` // Thai month abbreviations
 	Year         int     `gorm:"default:0" json:"year"`
 	Value        float64 `gorm:"default:0" json:"value"`
+	Paid         bool    `gorm:"default:false" json:"paid"`
 }
 
 type PersonDebt struct {

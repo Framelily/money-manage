@@ -242,3 +242,56 @@ func ToggleInstallment(c *gin.Context) {
 
 	c.JSON(http.StatusOK, plan)
 }
+
+type SetProviderPaidInput struct {
+	Provider string `json:"provider" binding:"required"`
+	Month    int    `json:"month"`
+	Year     int    `json:"year"`
+	Paid     bool   `json:"paid"`
+}
+
+func SetProviderInstallmentsPaid(c *gin.Context) {
+	userID := c.GetString("user_id")
+
+	var input SetProviderPaidInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var planIDs []string
+	if err := DB.Model(&InstallmentPlan{}).
+		Where("user_id = ? AND provider = ? AND is_closed = ?", userID, input.Provider, false).
+		Pluck("id", &planIDs).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(planIDs) == 0 {
+		c.JSON(http.StatusOK, []InstallmentPlan{})
+		return
+	}
+
+	status := "unpaid"
+	if input.Paid {
+		status = "paid"
+	}
+
+	if err := DB.Model(&Installment{}).
+		Where("plan_id IN ? AND month = ? AND year = ?", planIDs, input.Month, input.Year).
+		Update("status", status).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	var plans []InstallmentPlan
+	if err := DB.Where("user_id = ? AND provider = ?", userID, input.Provider).
+		Preload("Installments", func(db *gorm.DB) *gorm.DB {
+			return db.Order("installment_number ASC")
+		}).Find(&plans).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, plans)
+}

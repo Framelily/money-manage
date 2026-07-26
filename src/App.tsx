@@ -13,9 +13,6 @@ import { InstallmentsPage } from '@/pages/InstallmentsPage';
 import { BudgetPage } from '@/pages/BudgetPage';
 import { DebtsPage } from '@/pages/DebtsPage';
 import { PayoffPage } from '@/pages/PayoffPage';
-import { DailyPage } from '@/pages/DailyPage';
-import { DailyReportPage } from '@/pages/DailyReportPage';
-import { ChoosePage } from '@/pages/ChoosePage';
 
 export default function App() {
   return (
@@ -36,9 +33,6 @@ export default function App() {
               <Routes>
                 <Route path="/login" element={<LoginPage />} />
                 <Route element={<ProtectedRoute />}>
-                  <Route path="/choose" element={<ChoosePage />} />
-                  <Route path="/daily" element={<DailyPage />} />
-                  <Route path="/daily/report" element={<DailyReportPage />} />
                   <Route element={<AppLayout />}>
                     <Route path="/" element={<DashboardPage />} />
                     <Route path="/installments" element={<InstallmentsPage />} />

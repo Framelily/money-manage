@@ -1,9 +1,28 @@
+# Dependencies and build output
 node_modules
 dist
-.DS_Store
-*.local
+vendor/
 tsconfig.tsbuildinfo
+*.local
+
+# Go build artifacts
+apps/api/money-manage-api
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Environment — ignore all, keep the two that are meant to be committed
 .env
 .env.*
 !.env.production
+!.env.example
+
+# Tooling
+.DS_Store
 .superpowers
+__pycache__/
+*.pyc

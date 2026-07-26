@@ -177,8 +177,8 @@ export function PayoffBudgetTable({ budgetItems, plans, result, year, loading }:
         size="small"
         bordered
         rowClassName={(record) => {
-          if (record.isRemaining) return 'bg-gray-800 text-white';
-          if (record.isSummary) return 'bg-gray-50 font-semibold';
+          if (record.isRemaining) return 'budget-row-remaining';
+          if (record.isSummary) return 'budget-row-summary';
           return '';
         }}
       />

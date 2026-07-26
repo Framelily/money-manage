@@ -67,7 +67,9 @@ one by one.
 
 A provider row's cell for a month with no instalments shows nothing to pay, so it
 gets no checkbox — unlike an ordinary row, a zero there means the provider has
-no instalment that month, not an amount of zero.
+no instalment that month, not an amount of zero. Those cells are exactly the ones
+whose amount is zero, since instalments carry a positive amount, so the amount
+identifies them without a further flag.
 
 ### Summary rows
 
@@ -106,12 +108,24 @@ Two new endpoints:
 | Endpoint | Body | Effect |
 |---|---|---|
 | `PATCH /api/budget/:id/paid` | `{month, year, paid}` | sets the flag on one item's month |
-| `PATCH /api/installments/provider/:provider/paid` | `{month, year, paid}` | sets every instalment of that provider in that month to `paid`, in one transaction |
+| `PATCH /api/installments/paid` | `{provider, month, year, paid}` | sets every instalment of that provider in that month to `paid` |
 
 Both are user-scoped like every other route: the budget one by
-`budget_items.user_id`, the installment one by joining through
-`installment_plans.user_id`, so a provider name alone cannot reach another user's
-plans.
+`budget_items.user_id`, the installment one by resolving the provider's plans
+through `installment_plans.user_id` first, so a provider name alone cannot reach
+another user's plans.
+
+The provider travels in the body rather than the path for two reasons. `provider`
+is free-form user text (`CardProvider = string`), so a path segment would have to
+survive slashes and encoding. And gin already routes `/installments/:id` and
+`/installments/:planId/toggle/:installmentId`, so a literal `/provider/...`
+segment would sit where a wildcard already lives.
+
+The instalment write is a single `UPDATE ... WHERE plan_id IN (...) AND month = ?
+AND year = ?`, which MySQL applies atomically on its own — there is no partially
+written group to recover from, and no explicit transaction earning its keep.
+`month` here is the numeric index the `Installment` rows already store, matching
+`MONTHS_BE` positions, not the Thai abbreviation the budget tables use.
 
 `paid` is a separate endpoint from the existing `PATCH /:id/month` because that
 one requires a `value` in its body. Marking something paid should not mean
@@ -131,9 +145,14 @@ the user's tick actually did.
 ```ts
 export type PaidState = 'none' | 'partial' | 'all';
 
+export interface MonthPaid {
+  state: PaidState;
+  amount: Baht; // how much of that month's value is settled
+}
+
 interface BudgetItem {
   // ...
-  monthlyPaid: Record<MonthBE, PaidState>;
+  monthlyPaid: Record<MonthBE, MonthPaid>;
 }
 ```
 
@@ -147,10 +166,17 @@ means `BudgetTable` renders every cell the same way:
 
 Two types would mean two rendering paths through the same component.
 
-For ordinary items the state comes straight from the API: each
-`BudgetMonthlyValue` carries a boolean `paid`, which the service maps to `'all'`
-or `'none'`. `'partial'` is unreachable for them, which is correct — an ordinary
-item's month is one amount, either settled or not.
+`amount` rides along because the state alone cannot answer what the summary rows
+ask. A partially paid provider row has settled *some* of its month — the state
+says `'partial'`, but only the amount says how much, and `paid / total` needs the
+number. For ordinary items the amount is the whole value or zero, mirroring the
+state; deriving it there would be trivial, but then provider rows would need a
+second path, which is what the shared type exists to avoid.
+
+For ordinary items both fields come straight from the API: each
+`BudgetMonthlyValue` carries a boolean `paid`, mapping to `'all'` with the full
+value or `'none'` with zero. `'partial'` is unreachable for them, which is
+correct — an ordinary item's month is one amount, either settled or not.
 
 `monthlyValues` keeps its shape — turning it into `Record<MonthBE, {value, paid}>`
 would reach `BudgetChart`, `utils/calculations.ts`, the payoff page and the
@@ -168,9 +194,9 @@ endpoint and refreshes budget items.
 ## Data flow
 
 ```
-tick on an ordinary row  → PATCH /api/budget/:id/paid            → refresh budget items
-tick on a provider row   → PATCH /api/installments/provider/:p/paid → refresh plans
-                                                                  → installmentsToBudgetItems recomputes monthlyPaid
+tick on an ordinary row  → PATCH /api/budget/:id/paid    → refresh budget items
+tick on a provider row   → PATCH /api/installments/paid  → refresh plans
+                                                         → installmentsToBudgetItems recomputes monthlyPaid
 ```
 
 Summary and remaining figures are derived in `BudgetTable` from the rows it
@@ -180,8 +206,8 @@ already has — no extra request, no stored total.
 
 A failed write leaves the checkbox as it was and surfaces the API's message
 through the page's existing `message.error` path, matching how amount edits
-already fail. The provider write is transactional, so it either applies to the
-whole group or to none of it — there is no half-ticked outcome to explain.
+already fail. The provider write is a single statement, so it either applies to
+the whole group or to none of it — there is no half-ticked outcome to explain.
 
 ## Testing
 
